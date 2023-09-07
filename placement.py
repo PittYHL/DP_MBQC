@@ -91,7 +91,8 @@ def place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, restricted): #place B node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit): #place B node
+    restricted = 0
     #current
     new = 0 #how many new node
     num_succ = len(new_sucessors)
@@ -477,7 +478,8 @@ def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, ext
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, restricted): #place A node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit): #place A node
+    restricted = 0
     new = 0  # how many new node
     num_succ = len(new_sucessors)
     up_qubits, down_qubit, old_qubit = get_old_qubit(qubit_record, next_qubit, extra_qubits, loc)
