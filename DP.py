@@ -161,7 +161,6 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
         #             found_wire = 1
         #             next_node = node
         if wires == len(before) and before != []: #both predecessors are wires and one of the sucessors is placed
-            solved = 0
             if node not in two_wire:
                 two_wire.append(node)
             elif len(succs) == 1:
