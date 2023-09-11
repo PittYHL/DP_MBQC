@@ -65,7 +65,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
     table = [[]]
     shape = [[]]
     valid = [[]]
-    two_wire = []
+    two_wire = [] #for node both predecessors are wires
     if gate == 'A':
         dep = 1
         temp_shape.append([1])
@@ -126,7 +126,7 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
     for node in nodes_left: #found all the nodes that predecessors have been resolved
         succs = list(graph.successors(node))
         before = list(graph.predecessors(node))
-        p_index = 100000 #？？
+        # p_index = 100000 #？？
         wires = 0
         gate, _ = node.split('.')
         solved = 1
@@ -136,14 +136,14 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
         for pred in before:
             gate1, _ = pred.split('.')
             if pred in placed:
-                index = placed.index(pred)
+                # index = placed.index(pred)
                 pred_placed.append(pred)
             elif pred not in placed and gate1 != 'W': #if one of the predecessor is wire
                 solved = 0
             elif gate1 == 'W':
                 wires = wires + 1
-            if pred in placed and p_index > index:
-                p_index = index
+            # if pred in placed and p_index > index:
+            #     p_index = index
         if len(before) == 2 and pred_placed != [] and (before[0] in two_wire or before[1] in two_wire): #for two wire
             solved = 1
         if len(pred_placed) == 1 and len(before) == 2:
@@ -154,21 +154,15 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
                 if succ in placed:
                     solved = 1
                     succ_placed.append(node)
-        # elif gate != 'W':
-        #     solved = 0
-        #     for succ in succs:
-        #         if succ in placed:
-        #             found_wire = 1
-        #             next_node = node
         if wires == len(before) and before != []: #both predecessors are wires and one of the sucessors is placed
             if node not in two_wire:
                 two_wire.append(node)
-            elif len(succs) == 1:
+            elif len(succs) == 1: #both predecessors are wires and one sucessor is placed
                 if wires == len(before) and succs[0] in placed:
                     found_wire = 1
                     next_node = node
                     break
-            elif len(succs) == 2:
+            elif len(succs) == 2: #both predecessors are wires and one of sucessors is placed
                 if wires == len(before) and (succs[0] in placed or succs[1] in placed):
                     found_wire = 1
                     next_node = node
@@ -203,6 +197,7 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
                     if node in nodes[i]:
                         parent_row.append(i)
                         break
+    # print('g')
     if found_wire != 1 and found_C != 1:
         if succ_placed != []:
             next_node = find_higher_node(parent_index, succ_placed, next, parent_row)
