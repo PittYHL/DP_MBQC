@@ -126,7 +126,7 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
     for node in nodes_left: #found all the nodes that predecessors have been resolved
         succs = list(graph.successors(node))
         before = list(graph.predecessors(node))
-        p_index = 100000
+        p_index = 100000 #？？
         wires = 0
         gate, _ = node.split('.')
         solved = 1
