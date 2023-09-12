@@ -149,11 +149,11 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
         if len(pred_placed) == 1 and len(before) == 2:
             only_one.append(node)
             solved = 1
-        elif len(pred_placed) == 0 and gate != 'W':#if none of the predecessors have been placed, look for succesor
-            for succ in succs:
-                if succ in placed:
-                    solved = 1
-                    succ_placed.append(node)
+        # elif len(pred_placed) == 0 and gate != 'W':#if none of the predecessors have been placed, look for succesor
+        #     for succ in succs:
+        #         if succ in placed:
+        #             solved = 1
+        #             succ_placed.append(node)
         if wires == len(before) and before != []: #both predecessors are wires and one of the sucessors is placed
             if node not in two_wire:
                 two_wire.append(node)
@@ -199,9 +199,9 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire)
                         break
     # print('g')
     if found_wire != 1 and found_C != 1:
-        if succ_placed != []:
-            next_node = find_higher_node(parent_index, succ_placed, next, parent_row)
-        elif parent_index != []:
+        # if succ_placed != []:
+        #     next_node = find_higher_node(parent_index, succ_placed, next, parent_row)
+        if parent_index != []:
             next_node = available_node(parent_index, next, parent_row)
         elif only_one != []: # cannot find node with both predecessors resolved or wires or
             next_node = only_one[-1]
