@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from placement import *
 from To_graph import *
 from fill_map import *
+from leaves import *
 
 keep = 3
 long = 5
@@ -20,9 +21,9 @@ def DP(ori_map, qubits, rows):
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map)
 
-    table, shapes, index = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc)
-    # middle_shapes = shapes[-1]
-    # final_shapes = place_leaves(table, shapes, first, last, rows, special)
+    table, shapes  = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc)
+    middle_shapes = shapes[-1]
+    final_shapes = place_leaves(table, shapes, first, last, rows)
     # show_min(middle_shapes, final_shapes)
     # save_shapes(shapes)
     # combination(final_shapes, new_map)
@@ -53,6 +54,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
         nodes_left.remove(current)
         qubit_record = get_qubit_record(current, nodes, qubit_record)
         inde_table[0], inde_shape[0], new_placed = place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len)
+    return inde_shape[0], inde_shape[0]
 
 
 def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len):
