@@ -54,7 +54,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
         nodes_left.remove(current)
         qubit_record = get_qubit_record(current, nodes, qubit_record)
         inde_table[0], inde_shape[0], new_placed = place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len)
-    return inde_shape[0], inde_shape[0]
+    return inde_table[0], inde_shape[0]
 
 
 def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len):
