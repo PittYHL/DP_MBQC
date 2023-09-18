@@ -1,21 +1,29 @@
 import copy
 import random
 
-longest = 500
+longest = 100
 def place_leaves(table, shapes, first, last, rows):
-    last_table = table[-1]
-    last_shapes = shapes[-1]
+    last_table = table
+    last_shapes = shapes
     final_shapes = []
     max_first = max(first)
     all_length = first + last
     available_length = list(set(all_length))
     available_length.sort()
     all_leaves, all_paths = generate_leaves(available_length) #generate leaves of all the length
-    for i in range(len(last_table)):
-        starts = copy.deepcopy(last_table[i]['starts'])
-        ends = copy.deepcopy(last_table[i]['ends'])
-        shape = last_shapes[i]
-        new_shape = place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves)
+    short_table, short_shapes = sort_shape(last_table, last_shapes)
+    front_leaves = [[] for _ in range(len(short_table))]
+    front_locs = [[] for _ in range(len(short_table))]
+    back_leaves = [[] for _ in range(len(short_table))]
+    back_locs = [[] for _ in range(len(short_table))]
+    start_locs = [[] for _ in range(len(short_table))]
+    end_locs = [[] for _ in range(len(short_table))]
+    depths = [0] * len(short_table)
+    for i in range(len(short_table)):
+        starts = copy.deepcopy(short_table[i]['starts'])
+        ends = copy.deepcopy(short_table[i]['ends'])
+        shape = short_shapes[i]
+        depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i] = place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves)
     return final_shapes
 
 def generate_leaves(available_length):
@@ -192,6 +200,19 @@ def update_path(path): #update path whem upper row is inserted
         path[i][0] = path[i][0] + 1
     return path
 
+def sort_shape(last_table, last_shapes):
+    depth_list = []
+    valid_table = []
+    valid_shapes = []
+    for table in last_table:
+        depth_list.append(table['D'])
+    min_dep = min(depth_list)
+    for i in range(len(last_table)):
+        if last_table[i]['D'] == min_dep:
+            valid_table.append(last_table[i])
+            valid_shapes.append(last_shapes[i])
+    return valid_table, valid_shapes
+
 def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
@@ -210,7 +231,6 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     front_shapes[0].append(copy.deepcopy(original_shape))
     front_leaves[0].append([])
     front_locs[0].append([])
-    '''
     for i in range(len(starts)):
         shortest = 100000
         depth_list = []
@@ -231,7 +251,6 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
                         shortest = depth
         if len(depth_list) > longest:
             front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1] = remove_short_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list)
-    '''
     #for back
     back_shapes[0].append(copy.deepcopy(original_shape))
     back_leaves[0].append([])
@@ -256,7 +275,11 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
                         shortest = depth
         if len(depth_list) > longest:
             back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1] = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list)
-    print('g')
+        if len(back_shapes[i + 1]) == 0:
+            print('back_shapes is empty')
+    shortest_depth = count_shortest(original_shape, all_paths, front_shapes[-1], front_leaves[-1], front_locs[-1], starts, first,
+                                    back_shapes[-1], back_leaves[-1], back_locs[-1], ends, last)
+    return shortest_depth, front_locs[-1], front_leaves[-1], starts, back_locs[-1], back_leaves[-1], ends
 
 def check_start(temp_shape, start):
     available_locs = []
@@ -453,8 +476,9 @@ def remove_short_front(shapes, leaves, locs, depth_list):
         indexes = []
         for i in range(len(depth_list)):
             indexes.append(i)
-        indexes.sort()
-        for i in reversed(indexes):
+        chosen = random.sample(indexes, len(depth_list) - longest)
+        chosen.sort()
+        for i in reversed(chosen):
             shapes.pop(i)
             leaves.pop(i)
             locs.pop(i)
@@ -489,11 +513,71 @@ def remove_short_end(shapes, leaves, locs, depth_list):
         indexes = []
         for i in range(len(depth_list)):
             indexes.append(i)
-        indexes.sort()
-        for i in reversed(indexes):
+        chosen = random.sample(indexes, len(depth_list) - longest)
+        chosen.sort()
+        for i in reversed(chosen):
             shapes.pop(i)
             leaves.pop(i)
             locs.pop(i)
             depth_list.pop(i)
     return shapes, leaves, locs
+
+def count_shortest(original_shape, all_paths, front_shapes, front_leaves, front_locs,
+                   starts, first, back_shapes, back_leaves, back_locs, ends, last):
+    shortest_front = 100000
+    shortest_end = 100000
+    for i in range(len(front_shapes)):
+        if shortest_front > count_depth(front_shapes[i]):
+            shortest_front = count_depth(front_shapes[i])
+    for i in range(len(back_shapes)):
+        if shortest_end > count_depth(back_shapes[i]):
+            shortest_end = count_depth(back_shapes[i])
+    for i in range(len(front_shapes)):
+        if count_depth(front_shapes[i]) == shortest_front:
+            front_index = i
+            break
+    for i in range(len(back_shapes)):
+        if count_depth(back_shapes[i]) == shortest_end:
+            back_index = i
+            break
+    final_shape, final_depth = fill_final(original_shape, all_paths, front_leaves[front_index], front_locs[front_index], starts, first,
+                                          back_leaves[back_index], back_locs[back_index], ends, last)
+    return final_depth
+
+def fill_final(original_shape, all_paths, front_leave, front_loc,
+               starts, first, back_leave, back_loc, ends, last):
+    new_shape = copy.deepcopy(original_shape)
+    new_front = copy.deepcopy(front_leave)
+    new_back = copy.deepcopy(back_leave)
+    for i in range(len(new_front)):
+        front_paths = copy.deepcopy(all_paths[first[i] - 1][new_front[i]])
+        if front_loc[i] == 'l':
+            new_loc = [starts[i][0], starts[i][1] - 1]
+        elif front_loc[i] == 'u':
+            new_loc = [starts[i][0] - 1, starts[i][1]]
+        elif front_loc[i] == 'd':
+            new_loc = [starts[i][0] + 1, starts[i][1]]
+        offset_y = front_paths[-1][0] - new_loc[0]
+        offset_x = front_paths[-1][1] - new_loc[1]
+        for j in range(len(front_paths)):
+            front_paths[j][0] = front_paths[j][0] - offset_y
+            front_paths[j][1] = front_paths[j][1] - offset_x
+        for j in range(len(front_paths)):
+            new_shape[front_paths[j][0]][front_paths[j][1]] = 1
+    for i in range(len(new_back)):
+        back_paths = copy.deepcopy(all_paths[last[i] - 1][new_back[i]])
+        if back_loc[i] == 'r':
+            new_loc = [ends[i][0], ends[i][1] + 1]
+        elif back_loc[i] == 'u':
+            new_loc = [ends[i][0] - 1, ends[i][1]]
+        elif back_loc[i] == 'd':
+            new_loc = [ends[i][0] + 1, ends[i][1]]
+        offset_y = back_paths[0][0] - new_loc[0]
+        offset_x = back_paths[0][1] - new_loc[1]
+        for j in range(len(back_paths)):
+            back_paths[j][0] = back_paths[j][0] - offset_y
+            back_paths[j][1] = back_paths[j][1] - offset_x
+        for j in range(len(back_paths)):
+            new_shape[back_paths[j][0]][back_paths[j][1]] = 1
+    return new_shape, count_depth(new_shape)
 
