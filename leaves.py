@@ -1,7 +1,7 @@
 import copy
 import random
 
-longest = 1000
+longest = 500
 def place_leaves(table, shapes, first, last, rows):
     last_table = table[-1]
     last_shapes = shapes[-1]
@@ -15,7 +15,7 @@ def place_leaves(table, shapes, first, last, rows):
         starts = copy.deepcopy(last_table[i]['starts'])
         ends = copy.deepcopy(last_table[i]['ends'])
         shape = last_shapes[i]
-        new_shape = place_final_shape(shape, starts, ends, all_paths, max_first, first, last)
+        new_shape = place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves)
     return final_shapes
 
 def generate_leaves(available_length):
@@ -192,11 +192,15 @@ def update_path(path): #update path whem upper row is inserted
         path[i][0] = path[i][0] + 1
     return path
 
-def place_final_shape(shape, starts, ends, all_paths, max_first, first, last):
+def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
+    front_leaves = [[] for _ in range(len(starts) + 1)]
+    front_locs = [[] for _ in range(len(starts) + 1)]
     back_shapes = [[] for _ in range(len(starts) + 1)]
+    back_leaves = [[] for _ in range(len(starts) + 1)]
+    back_locs = [[] for _ in range(len(starts) + 1)]
     for i in range(len(starts)):
-        starts[i][1] = starts[i][1] + max_first
+        starts[i][1] = starts[i][1] + max_first #change the x locs
         ends[i][1] = ends[i][1] + max_first
     # starts.sort(reverse=True, key=lambda x: x[1])
     # ends.sort(key=lambda x: x[1])
@@ -204,14 +208,21 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last):
     for i in range(len(original_shape)):
         original_shape[i] = [0] * max_first + original_shape[i] + [0] * max(last)
     front_shapes[0].append(copy.deepcopy(original_shape))
+    front_leaves[0].append([])
+    front_locs[0].append([])
+    '''
     for i in range(len(starts)):
-        print('g')
         shortest = 100000
         depth_list = []
-        for temp_shape in front_shapes[i]:
-            available_locs = check_start(temp_shape, starts[i])
-            for loc in available_locs:
-                new_shapes = place_leaf_front(temp_shape, loc, all_paths[first[i] - 1])
+        for j in range(len(front_shapes[i])):
+            available_locs, available_dirs = check_start(front_shapes[i][j], starts[i])
+            for k in range(len(available_locs)):
+                new_shapes, new_leaves = place_leaf_front(front_shapes[i][j], front_leaves[i][j], available_locs[k], all_paths[first[i] - 1])
+                front_leaves[i + 1] = front_leaves[i + 1] + new_leaves
+                for l in range(len(new_shapes)):
+                    new_locs = copy.deepcopy(front_locs[i][j])
+                    new_locs.append(available_dirs[k])
+                    front_locs[i + 1].append(new_locs)
                 for new_shape in new_shapes:
                     front_shapes[i + 1].append(new_shape)
                     depth = count_depth(new_shape)
@@ -219,42 +230,113 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last):
                     if depth < shortest:
                         shortest = depth
         if len(depth_list) > longest:
-            front_shapes[i + 1] = remove_short(front_shapes[i + 1], depth_list)
-
+            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1] = remove_short_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list)
+    '''
+    #for back
+    back_shapes[0].append(copy.deepcopy(original_shape))
+    back_leaves[0].append([])
+    back_locs[0].append([])
+    for i in range(len(ends)):
+        shortest = 100000
+        depth_list = []
+        for j in range(len(back_shapes[i])):
+            available_locs, available_dirs = check_end(back_shapes[i][j], ends[i])
+            for k in range(len(available_locs)):
+                new_shapes, new_leaves = place_leaf_end(back_shapes[i][j], back_leaves[i][j], available_locs[k], all_paths[last[i] - 1])
+                back_leaves[i + 1] = back_leaves[i + 1] + new_leaves
+                for l in range(len(new_shapes)):
+                    new_locs = copy.deepcopy(back_locs[i][j])
+                    new_locs.append(available_dirs[k])
+                    back_locs[i + 1].append(new_locs)
+                for new_shape in new_shapes:
+                    back_shapes[i + 1].append(new_shape)
+                    depth = count_depth(new_shape)
+                    depth_list.append(depth)
+                    if depth < shortest:
+                        shortest = depth
+        if len(depth_list) > longest:
+            back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1] = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list)
     print('g')
 
 def check_start(temp_shape, start):
     available_locs = []
+    available_dir = []
     if start[0] == 0: #only left and down
         if temp_shape[start[0]][start[1] - 1] == 0 and temp_shape[start[0]+1][start[1] - 1] == 0 \
                 and (start[1] <= 1 or (start[1] > 1 and temp_shape[start[0]][start[1] - 2]) == 0):
             available_locs.append([start[0], start[1] - 1])
+            available_dir.append('l')
         if temp_shape[start[0] + 1][start[1]] == 0 and temp_shape[start[0]+1][start[1] + 1] == 0 \
                 and temp_shape[start[0] + 2][start[1]] == 0 and (start[1] == 0 or (temp_shape[start[0] + 1][start[1] - 1]) == 0):
             available_locs.append([start[0] + 1, start[1]])
+            available_dir.append('d')
     elif start[0] == len(temp_shape) - 1:
         if temp_shape[start[0]][start[1] - 1] == 0 and temp_shape[start[0]-1][start[1] - 1] == 0 \
                 and (start[1] <= 1 or (start[1] > 1 and temp_shape[start[0]][start[1] - 2]) == 0):
             available_locs.append([start[0], start[1] - 1])
+            available_dir.append('l')
         if temp_shape[start[0] - 1][start[1]] == 0 and temp_shape[start[0]-1][start[1] + 1] == 0 \
                 and temp_shape[start[0] - 2][start[1]] == 0 and (start[1] == 0 or (temp_shape[start[0] - 1][start[1] - 1]) == 0):
             available_locs.append([start[0] - 1, start[1]])
+            available_dir.append('u')
     else:
         if temp_shape[start[0]][start[1] - 1] == 0 and temp_shape[start[0]+1][start[1] - 1] == 0 \
                 and temp_shape[start[0]-1][start[1] - 1] == 0 and (start[1] <= 1 or (start[1] > 1 and temp_shape[start[0]][start[1] - 2]) == 0):#for left
             available_locs.append([start[0], start[1] - 1])
+            available_dir.append('l')
         if temp_shape[start[0] - 1][start[1]] == 0 and temp_shape[start[0] - 1][start[1] + 1] == 0 \
                 and (start[1] == 0 or temp_shape[start[0] - 1][start[1] - 1] == 0) and (
                 start[0] == 1 or (temp_shape[start[0] - 2][start[1]]) == 0): #for up
             available_locs.append([start[0] - 1, start[1]])
+            available_dir.append('u')
         if temp_shape[start[0] + 1][start[1]] == 0 and temp_shape[start[0] + 1][start[1] + 1] == 0 \
                 and (start[1] == 0 or temp_shape[start[0] + 1][start[1] - 1] == 0) and (
                 start[0] == len(temp_shape) - 2 or (temp_shape[start[0] + 2][start[1]]) == 0): #for down
             available_locs.append([start[0] + 1, start[1]])
-    return available_locs
+            available_dir.append('d')
+    return available_locs, available_dir
 
-def place_leaf_front(temp_shape, loc, paths):
+def check_end(temp_shape, end):
+    available_locs = []
+    available_dir = []
+    if end[0] == 0: #only right and down
+        if temp_shape[end[0]][end[1] + 1] == 0 and temp_shape[end[0]+1][end[1] + 1] == 0 \
+                and (end[1] >= len(temp_shape[0]) - 2 or (end[1] < len(temp_shape[0]) - 2 and temp_shape[end[0]][end[1] + 2]) == 0):
+            available_locs.append([end[0], end[1] + 1])
+            available_dir.append('r')
+        if temp_shape[end[0] + 1][end[1]] == 0 and temp_shape[end[0]+1][end[1] - 1] == 0 \
+                and temp_shape[end[0] + 2][end[1]] == 0 and (end[1] == len(temp_shape[0]) - 1 or (temp_shape[end[0] + 1][end[1] + 1]) == 0):
+            available_locs.append([end[0] + 1, end[1]])
+            available_dir.append('d')
+    elif end[0] == len(temp_shape) - 1:
+        if temp_shape[end[0]][end[1] + 1] == 0 and temp_shape[end[0]-1][end[1] + 1] == 0 \
+                and (end[1] >= len(temp_shape[0]) - 2 or (end[1] < len(temp_shape[0]) - 2 and temp_shape[end[0]][end[1] + 2]) == 0):
+            available_locs.append([end[0], end[1] + 1])
+            available_dir.append('r')
+        if temp_shape[end[0] - 1][end[1]] == 0 and temp_shape[end[0]-1][end[1] - 1] == 0 \
+                and temp_shape[end[0] - 2][end[1]] == 0 and (end[1] == len(temp_shape[0]) - 1 or (temp_shape[end[0] - 1][end[1] + 1]) == 0):
+            available_locs.append([end[0] - 1, end[1]])
+            available_dir.append('u')
+    else:
+        if temp_shape[end[0]][end[1] + 1] == 0 and temp_shape[end[0]+1][end[1] + 1] == 0 \
+                and temp_shape[end[0]-1][end[1] + 1] == 0 and (end[1] >= len(temp_shape[0]) - 2 or (end[1] < len(temp_shape[0]) - 2 and temp_shape[end[0]][end[1] + 2]) == 0):#for left
+            available_locs.append([end[0], end[1] + 1])
+            available_dir.append('r')
+        if temp_shape[end[0] - 1][end[1]] == 0 and temp_shape[end[0] - 1][end[1] - 1] == 0 \
+                and (end[1] == len(temp_shape[0]) - 1 or temp_shape[end[0] - 1][end[1] + 1] == 0) and (
+                end[0] == 1 or (temp_shape[end[0] - 2][end[1]]) == 0): #for up
+            available_locs.append([end[0] - 1, end[1]])
+            available_dir.append('u')
+        if temp_shape[end[0] + 1][end[1]] == 0 and temp_shape[end[0] + 1][end[1] - 1] == 0 \
+                and (end[1] == len(temp_shape[0]) - 1 or temp_shape[end[0] + 1][end[1] + 1] == 0) and (
+                end[0] == len(temp_shape) - 2 or (temp_shape[end[0] + 2][end[1]]) == 0): #for down
+            available_locs.append([end[0] + 1, end[1]])
+            available_dir.append('d')
+    return available_locs, available_dir
+
+def place_leaf_front(temp_shape, temp_leave, loc, paths):
     new_shapes = []
+    new_leaves = []
     new_paths = copy.deepcopy(paths)
     valid_paths = [] #any point not exceed range of cluster state
     for i in range(len(new_paths)):
@@ -267,21 +349,58 @@ def place_leaf_front(temp_shape, loc, paths):
             if new_paths[i][j][0] < 0 or new_paths[i][j][1] < 0:
                 flag = 1
         if flag == 0:
-            valid_paths.append(new_paths[i])
-    for path in valid_paths:
+            valid_paths.append(i)
+    for j in valid_paths:
         flag = 0
         new_shape = copy.deepcopy(temp_shape)
         new_shape[loc[0]][loc[1]] = 1
-        for i in range(len(path) - 1, 0, -1):
-            available_locs = check_start(new_shape, path[i])
-            if path[i - 1] not in available_locs:
+        new_leave = copy.deepcopy(temp_leave)
+        for i in range(len(new_paths[j]) - 1, 0, -1):
+            available_locs, _ = check_start(new_shape, new_paths[j][i])
+            if new_paths[j][i - 1] not in available_locs:
                 flag = 1
                 break
             else:
-                new_shape[path[i - 1][0]][path[i - 1][1]] = 1
+                new_shape[new_paths[j][i - 1][0]][new_paths[j][i - 1][1]] = 1
         if flag == 0:
+            new_leave.append(j)
             new_shapes.append(new_shape)
-    return new_shapes
+            new_leaves.append(new_leave)
+    return new_shapes, new_leaves
+
+def place_leaf_end(temp_shape, temp_leave, loc, paths):
+    new_shapes = []
+    new_leaves = []
+    new_paths = copy.deepcopy(paths)
+    valid_paths = [] #any point not exceed range of cluster state
+    for i in range(len(new_paths)):
+        flag = 0
+        offset_y = new_paths[i][0][0] - loc[0]
+        offset_x = new_paths[i][0][1] - loc[1]
+        for j in range(len(new_paths[i])):
+            new_paths[i][j][0] = new_paths[i][j][0] - offset_y
+            new_paths[i][j][1] = new_paths[i][j][1] - offset_x
+            if new_paths[i][j][0] < 0 or new_paths[i][j][1] < 0 or new_paths[i][j][0] > len(temp_shape) -1 or new_paths[i][j][1] > len(temp_shape[0]) -1: #need debug
+                flag = 1
+        if flag == 0:
+            valid_paths.append(i)
+    for j in valid_paths:
+        flag = 0
+        new_shape = copy.deepcopy(temp_shape)
+        new_shape[loc[0]][loc[1]] = 1
+        new_leave = copy.deepcopy(temp_leave)
+        for i in range(len(new_paths[j]) - 1):
+            available_locs, _ = check_end(new_shape, new_paths[j][i])
+            if new_paths[j][i + 1] not in available_locs:
+                flag = 1
+                break
+            else:
+                new_shape[new_paths[j][i + 1][0]][new_paths[j][i + 1][1]] = 1
+        if flag == 0:
+            new_leave.append(j)
+            new_shapes.append(new_shape)
+            new_leaves.append(new_leave)
+    return new_shapes, new_leaves
 
 def count_depth(new_shape):
     first = 0
@@ -306,7 +425,7 @@ def count_depth(new_shape):
             break
     return last + 1 -first
 
-def remove_short(shapes, depth_list):
+def remove_short_front(shapes, leaves, locs, depth_list):
     if len(list(set(depth_list))) == 1:
         indexes = []
         for i in range(len(depth_list)):
@@ -315,8 +434,10 @@ def remove_short(shapes, depth_list):
         chosen.sort()
         for i in reversed(chosen):
             shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
             depth_list.pop(i)
-        return shapes
+        return shapes, leaves, locs
     while(len(shapes) > longest and len(list(set(depth_list))) != 1):
         max_depth = max(depth_list)
         max_list = []
@@ -325,6 +446,8 @@ def remove_short(shapes, depth_list):
                 max_list.append(i)
         for i in reversed(max_list):
             shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
             depth_list.pop(i)
     if len(list(set(depth_list))) == 1 and len(shapes) > longest:
         indexes = []
@@ -333,6 +456,44 @@ def remove_short(shapes, depth_list):
         indexes.sort()
         for i in reversed(indexes):
             shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
             depth_list.pop(i)
-    return shapes
+    return shapes, leaves, locs
+
+def remove_short_end(shapes, leaves, locs, depth_list):
+    if len(list(set(depth_list))) == 1:
+        indexes = []
+        for i in range(len(depth_list)):
+            indexes.append(i)
+        chosen = random.sample(indexes, len(depth_list) - longest)
+        chosen.sort()
+        for i in reversed(chosen):
+            shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
+            depth_list.pop(i)
+        return shapes, leaves, locs
+    while(len(shapes) > longest and len(list(set(depth_list))) != 1):
+        max_depth = max(depth_list)
+        max_list = []
+        for i in range(len(depth_list)):
+            if depth_list[i] == max_depth:
+                max_list.append(i)
+        for i in reversed(max_list):
+            shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
+            depth_list.pop(i)
+    if len(list(set(depth_list))) == 1 and len(shapes) > longest:
+        indexes = []
+        for i in range(len(depth_list)):
+            indexes.append(i)
+        indexes.sort()
+        for i in reversed(indexes):
+            shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
+            depth_list.pop(i)
+    return shapes, leaves, locs
 
