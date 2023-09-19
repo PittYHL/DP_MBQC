@@ -48,18 +48,19 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
     #place each independent node until two-qubit pattern
     inde_table = []
     inde_shape = []
+    current_independent_node = copy.deepcopy(independet_node)
     for i in range(len(independet_node)):
         inde_table.append([])
         inde_shape.append([])
-        current = independet_node.pop(0)
+        current = current_independent_node.pop(0)
         nodes_left.remove(current)
         qubit_record = get_qubit_record(current, nodes, qubit_record)
         inde_table[0], inde_shape[0], new_placed, onle_one_pre[i + 1] = \
-            place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, onle_one_pre[i])
+            place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, onle_one_pre[i], current_independent_node)
     return inde_table[0], inde_shape[0]
 
 
-def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, last_only_one_pre):
+def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, last_only_one_pre, independent_node):
     index = 0
     placed = []
     onle_one_pre = [] #record node with only one predecessor placed
@@ -102,7 +103,9 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1]],
                      'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[2,1]]})
     shape[0].append(temp_shape)
-    next, onle_one_pre = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre)
+    next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre, independent_node)
+    if match_next_node:
+        return table[-1], shape[-1], placed, onle_one_pre
     only_right = []  # record the C that only can go right (if previous two-qubit gate and later are on the same qubits)
     while next != "":
         c_qubit = find_qubits(nodes, placed, next)
@@ -116,10 +119,12 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         for j in next_list:
             nodes_left.remove(j)
             placed.append(j)
-        next, onle_one_pre = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre)  # chose the next
+        next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre, independent_node)  # chose the next
+        if match_next_node:
+            return table[-1], shape[-1], placed, onle_one_pre
     return table[-1], shape[-1], placed, onle_one_pre
 
-def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre):
+def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre, independent_node):
     next = []
     parent_index = [] #the parent of the chosen
     parent_row = [] #record the row number of the qubit
@@ -134,6 +139,7 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire,
             return next_node, onle_one_pre, 1
         succs = list(graph.successors(node))
         before = list(graph.predecessors(node))
+        copy_before = copy.deepcopy(before)
         # p_index = 100000 #？？
         wires = 0
         gate, _ = node.split('.')
@@ -146,6 +152,7 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire,
             if pred in placed:
                 # index = placed.index(pred)
                 pred_placed.append(pred)
+                copy_before.remove(pred)
             elif pred not in placed and gate1 != 'W': #if one of the predecessor is wire
                 solved = 0
             elif gate1 == 'W':
@@ -154,12 +161,15 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire,
             #     p_index = index
         if len(before) == 2 and pred_placed != [] and (before[0] in two_wire or before[1] in two_wire): #for two wire
             solved = 1
-        if len(pred_placed) == 1 and len(before) == 2 and wires == 1: #only there is a wire
-            if wires == 1:
+        if len(pred_placed) == 1 and len(before) == 2: #check if another predecessors have been placed
+            ancestor_placed = check_ancestor(copy_before[0], graph, placed, independent_node)
+            if ancestor_placed:
                 only_one.append(node)
                 solved = 1
-            elif node not in onle_one_pre:
+            else:
                 onle_one_pre.append(node)
+                match_next_node = 1
+                return next_node, onle_one_pre, match_next_node
         # elif len(pred_placed) == 0 and gate != 'W':#if none of the predecessors have been placed, look for succesor
         #     for succ in succs:
         #         if succ in placed:
@@ -724,3 +734,17 @@ def get_next_qubit(nodes, next):
         if next in nodes[i]:
             c_qubit.append(i + 1)
     return c_qubit
+
+def check_ancestor(node, graph, placed, independent_node):
+    current_node = node
+    queue = list(graph.predecessors(current_node))
+    found_placed = 0
+    while queue != []:
+        current_node = queue.pop(0)
+        if current_node in placed:
+            return 1
+        elif current_node in independent_node:
+            return 0
+        else:
+            queue = queue + list(graph.predecessors(current_node))
+    return found_placed
