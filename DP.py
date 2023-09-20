@@ -24,11 +24,6 @@ def DP(ori_map, qubits, rows):
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc)
     middle_shapes = shapes[-1]
     final_shapes = place_leaves(table, shapes, first, last, rows)
-    # show_min(middle_shapes, final_shapes)
-    # save_shapes(shapes)
-    # combination(final_shapes, new_map)
-    # combination2(table[-1], middle_shapes, first, last, rows)
-    # save_shapes(shapes)
     print('g')
 
 def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
@@ -48,6 +43,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
     #place each independent node until two-qubit pattern
     inde_table = [[] for _ in range(len(independet_node))]
     inde_shape = [[] for _ in range(len(independet_node))]
+    inde_placed = [[] for _ in range(len(independet_node))]
     current_independent_node = copy.deepcopy(independet_node)
     current = current_independent_node.pop(0)
     nodes_left.remove(current)
@@ -58,15 +54,26 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
     if len(independet_node) == 1:
         return inde_table, inde_shape
     i = 0
-    while len(nodes_left) != 0:
-        i = i + 1
+    for i in range(1, len(independet_node)):
         current = current_independent_node.pop(0)
         nodes_left.remove(current)
         qubit_record = get_qubit_record(current, nodes, qubit_record)
-        inde_table[i], inde_shape[i], placed, onle_one_pre[i + 1], nodes_left = \
+        inde_table[i], inde_shape[i], new_placed, onle_one_pre[i + 1], nodes_left = \
             place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                              onle_one_pre[i], current_independent_node, placed)
-
+                              onle_one_pre[i], current_independent_node, [])
+        inde_placed[i] = new_placed
+        placed = placed + new_placed
+    while nodes_left!= []:
+        combination = find_combine(onle_one_pre)
+        inde_table.append([])
+        inde_shape.append([])
+        onle_one_pre.append([])
+        placed.append(onle_one_pre[combination[0]][0])
+        nodes_left.remove(onle_one_pre[combination[0]][0])
+        temp_table, temp_shape = combine(onle_one_pre[combination[0]][0], inde_table[combination[0] - 1], inde_shape[combination[0] - 1], inde_table[combination[1] - 1],
+                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph)
+        onle_one_pre[combination[0]] = []
+        onle_one_pre[combination[1]] = []
     return inde_table[0], inde_shape[0]
 
 
@@ -144,9 +151,9 @@ def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire,
     next_node = ""
     match_next_node = 0 #record if one of the predecessors of next node have been placed
     for node in nodes_left: #found all the nodes that predecessors have been resolved
-        if node in last_only_one_pre:
-            onle_one_pre.append(node)
-            return next_node, onle_one_pre, 1
+        # if node in last_only_one_pre:
+        #     onle_one_pre.append(node)
+        #     return next_node, onle_one_pre, 1
         succs = list(graph.successors(node))
         before = list(graph.predecessors(node))
         copy_before = copy.deepcopy(before)
@@ -758,3 +765,30 @@ def check_ancestor(node, graph, placed, independent_node):
         else:
             queue = queue + list(graph.predecessors(current_node))
     return found_placed
+
+def find_combine(onle_one_pre):
+    for i in range(len(onle_one_pre)):
+        for j in range(len(onle_one_pre)):
+            if i != j and onle_one_pre[i] == onle_one_pre[j]:
+                return [i, j]
+
+def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph):
+    new_tables = []
+    new_shapes = []
+    for i in range(len(table0)):
+        for j in range(len(table1)):
+            index0 = table0[i]['successor'].index(next)
+            index1 = table1[j]['successor'].index(next)
+            point0 = table0[i]['front'][index0]
+            point1 = table1[j]['front'][index1]
+            gate, _ = next.split('.')
+            loc0 = check_loc(nodes, placed0, next, graph, [])
+            loc1 = check_loc(nodes, placed1, next, graph, [])
+            if loc0 == loc1:
+                print('Wrong!')
+            new_table, new_shape = check_combine_possible(shape0[i], shape1[j], point0, point1, gate, rows, loc0)
+
+def check_combine_possible(shape0, shape1, loc0, loc1, gate, rows, pos0):
+    new_table = []
+    new_shape = []
+    # if loc0[0] <
