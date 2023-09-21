@@ -791,4 +791,46 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
 def check_combine_possible(shape0, shape1, loc0, loc1, gate, rows, pos0):
     new_table = []
     new_shape = []
-    # if loc0[0] <
+    if pos0 == 'd': #shape0 on top
+        #first situation
+        new_loc1 = [loc0[0] + 2, loc0[1]]
+        shape = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows)
+        new_shape.append(shape)
+        new_loc1 = [loc0[0] + 3, loc0[1] + 1]
+        shape = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows)
+        new_shape.append(shape)
+        new_loc1 = [loc0[0] + 3, loc0[1] - 1]
+        shape = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows)
+        new_shape.append(shape)
+
+def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows): #loc0 is the upper shape
+    new_shape = copy.deepcopy(shape0)
+    total_row = new_loc1[0] + len(shape1) - loc1[0]
+    temp_loc0 = copy.deepcopy(loc0)
+    temp_loc1 = copy.deepcopy(loc1)
+    if total_row > rows:
+        return []
+    if total_row > len(new_shape):
+        for i in range(total_row - len(new_shape)):
+            new_shape.append([0]*len(new_shape[0]))
+    length_difference = loc1[1] - new_loc1[1] #used to update the table
+    if length_difference > 0:
+        for i in range(len(new_shape)):
+            new_shape[i] = [0]*length_difference + new_shape[i]
+        temp_loc0[1] = temp_loc0[1] + length_difference
+        new_loc1[1] = new_loc1[1] + length_difference
+    new_length = max(len(shape1[0]) - loc1[1] + new_loc1[1], temp_loc0[1] + len(shape0[0]) - loc0[1])
+    if new_length > len(new_shape[0]):
+        for i in range(len(new_shape)):
+            new_shape[i] = new_shape[i] + (new_length - len(shape0[0]))*[0]
+    start_pt = [new_loc1[0] - temp_loc1[0], new_loc1[1] - temp_loc1[1]]
+    for i in range(len(shape1)):
+        for j in range(len(shape1[0])):
+            if new_shape[i + start_pt[0]][j + start_pt[1]] != 0:
+                return []
+            new_shape[i + start_pt[0]][j + start_pt[1]] = shape1[i][j]
+    return new_shape
+
+
+
+
