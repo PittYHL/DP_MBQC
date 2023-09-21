@@ -820,6 +820,15 @@ def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows): #loc0
         temp_loc0[1] = temp_loc0[1] + length_difference
         new_loc1[1] = new_loc1[1] + length_difference
     new_length = max(len(shape1[0]) - loc1[1] + new_loc1[1], temp_loc0[1] + len(shape0[0]) - loc0[1])
+    if loc1[1] == loc0[1]:
+        new_length = max(new_length, new_loc1[1] + 3)
+        place_pt = [temp_loc0[0], temp_loc0[1] + 1]
+    elif loc1[1] - loc0[1] == 1:
+        new_length = max(new_length, new_loc1[1] + 2)
+        place_pt = [temp_loc0[0], temp_loc0[1] + 1]
+    elif loc0[1] - loc1[1] == 1:
+        new_length = max(new_length, temp_loc0[1] + 2)
+        place_pt = [temp_loc0[0] + 1, temp_loc0[1]]
     if new_length > len(new_shape[0]):
         for i in range(len(new_shape)):
             new_shape[i] = new_shape[i] + (new_length - len(shape0[0]))*[0]
@@ -829,6 +838,13 @@ def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows): #loc0
             if new_shape[i + start_pt[0]][j + start_pt[1]] != 0:
                 return []
             new_shape[i + start_pt[0]][j + start_pt[1]] = shape1[i][j]
+    if gate == 'A':
+        for i in range(3):
+            new_shape[place_pt[0] + i][place_pt[1]] = 1
+    elif gate == 'A':
+        for i in range(3):
+            for j in range(2):
+                new_shape[place_pt[0] + i][place_pt[1] + j] = 1
     return new_shape
 
 
