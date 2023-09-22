@@ -32,52 +32,66 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
     order = list(nx.topological_sort(graph))
     order, W_len, graph, nodes = update_all_wires(order, W_len, graph, nodes)#switch wire to the right
     independet_node = find_independent(graph, order)
-    onle_one_pre = [[] for _ in range(len(independet_node) + 1)]
+    onle_one_pre = [[] for _ in range(len(independet_node) + 1)] #the first one is empty
     table = [[]]
     shape = [[]]
     valid = [[]]  # for chosen patterns
     two_wire = []  # record the node with two wire predecessors
-    qubit_record = []
     placed = [] #nodes have been placed
     nodes_left = copy.deepcopy(order)
     #place each independent node until two-qubit pattern
     inde_table = [[] for _ in range(len(independet_node))]
     inde_shape = [[] for _ in range(len(independet_node))]
     inde_placed = [[] for _ in range(len(independet_node))]
+    inde_qubit_record = [[] for _ in range(len(independet_node))]
     current_independent_node = copy.deepcopy(independet_node)
     current = current_independent_node.pop(0)
     nodes_left.remove(current)
-    qubit_record = get_qubit_record(current, nodes, qubit_record)
-    inde_table[0], inde_shape[0], placed, onle_one_pre[1], nodes_left = \
-        place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                          onle_one_pre[0], current_independent_node, placed)
+    inde_qubit_record[0] = get_qubit_record(current, nodes, [])
+    inde_table[0], inde_shape[0], inde_placed[0], onle_one_pre[1], nodes_left, inde_qubit_record[0] = \
+        place_independent(current, graph, inde_qubit_record[0], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
+                        current_independent_node, placed)
     if len(independet_node) == 1:
         return inde_table, inde_shape
     i = 0
     for i in range(1, len(independet_node)):
         current = current_independent_node.pop(0)
+        new_independent_node = copy.deepcopy(independet_node)
+        new_independent_node.remove(current)
         nodes_left.remove(current)
-        qubit_record = get_qubit_record(current, nodes, qubit_record)
-        inde_table[i], inde_shape[i], new_placed, onle_one_pre[i + 1], nodes_left = \
-            place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                              onle_one_pre[i], current_independent_node, [])
+        inde_qubit_record[i] = get_qubit_record(current, nodes, [])
+        inde_table[i], inde_shape[i], new_placed, onle_one_pre[i + 1], nodes_left, inde_qubit_record[i] = \
+            place_independent(current, graph, inde_qubit_record[i], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
+                              new_independent_node, [])
         inde_placed[i] = new_placed
-        placed = placed + new_placed
+    rest_independent_node = copy.deepcopy(independet_node)
     while nodes_left!= []:
         combination = find_combine(onle_one_pre)
         inde_table.append([])
         inde_shape.append([])
         onle_one_pre.append([])
+        inde_placed.append([])
+        inde_qubit_record.append([])
+        if combination[0] - 1 < len(independet_node) and independet_node[combination[0] - 1] in rest_independent_node:
+            rest_independent_node.remove(independet_node[combination[0] - 1])
+        if combination[1] - 1 < len(independet_node) and independet_node[combination[1] - 1] in rest_independent_node:
+            rest_independent_node.remove(independet_node[combination[1] - 1])
+        placed = inde_placed[combination[0] - 1] + inde_placed[combination[1] - 1]
         placed.append(onle_one_pre[combination[0]][0])
         nodes_left.remove(onle_one_pre[combination[0]][0])
         temp_table, temp_shape = combine(onle_one_pre[combination[0]][0], inde_table[combination[0] - 1], inde_shape[combination[0] - 1], inde_table[combination[1] - 1],
                                          inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph, qubits)
         onle_one_pre[combination[0]] = []
         onle_one_pre[combination[1]] = []
-    return inde_table[0], inde_shape[0]
+        i = i + 1
+        inde_qubit_record[i] = inde_qubit_record[combination[0] - 1] + inde_qubit_record[combination[1] - 1]
+        inde_table[i], inde_shape[i], inde_placed[i], onle_one_pre[i + 1], nodes_left, inde_qubit_record[i] = \
+            place_combine([temp_table], [temp_shape], inde_qubit_record[i], graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
+                              rest_independent_node, placed)
+    return inde_table[-1], inde_shape[-1]
 
 
-def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, last_only_one_pre, independent_node, placed):
+def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, independent_node, placed):
     index = 0
     onle_one_pre = [] #record node with only one predecessor placed
     placed.append(current)
@@ -119,9 +133,9 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1]],
                      'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[2,1]]})
     shape[0].append(temp_shape)
-    next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre, independent_node)
+    next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node)
     if match_next_node:
-        return table[-1], shape[-1], placed, onle_one_pre, nodes_left
+        return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
     only_right = []  # record the C that only can go right (if previous two-qubit gate and later are on the same qubits)
     while next != "":
         c_qubit = find_qubits(nodes, placed, next)
@@ -135,12 +149,40 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         for j in next_list:
             nodes_left.remove(j)
             placed.append(j)
-        next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre, independent_node)  # chose the next
+        next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node)  # chose the next
         if match_next_node:
             return table[-1], shape[-1], placed, onle_one_pre, nodes_left
+    return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
+
+def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
+                              independent_node, placed):
+    index = 0
+    onle_one_pre = []  # record node with only one predecessor placed
+    valid = [[]]
+    two_wire = []  # for node both predecessors are wires
+    next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire,
+                                                      onle_one_pre, independent_node)
+    if match_next_node:
+        return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
+    only_right = []  # record the C that only can go right (if previous two-qubit gate and later are on the same qubits)
+    while next != "":
+        c_qubit = find_qubits(nodes, placed, next)
+        new_sucessors = list(graph.successors(next))
+        loc = check_loc(nodes, placed, next, graph, two_wire)
+        print(next)
+        next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
+                               W_len, placed, two_wire, only_right, qubit_record)  # place the next node
+        qubit_record = get_qubit_record(next, nodes, qubit_record)
+        index = index + 1
+        for j in next_list:
+            nodes_left.remove(j)
+            placed.append(j)
+        next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node)  # chose the next
+        if match_next_node:
+            return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
     return table[-1], shape[-1], placed, onle_one_pre, nodes_left
 
-def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, last_only_one_pre, independent_node):
+def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node):
     next = []
     parent_index = [] #the parent of the chosen
     parent_row = [] #record the row number of the qubit
@@ -769,7 +811,7 @@ def check_ancestor(node, graph, placed, independent_node):
 def find_combine(onle_one_pre):
     for i in range(len(onle_one_pre)):
         for j in range(len(onle_one_pre)):
-            if i != j and onle_one_pre[i] == onle_one_pre[j]:
+            if i != j and onle_one_pre[i] == onle_one_pre[j] and onle_one_pre[i] != []:
                 return [i, j]
 
 def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph, qubit_num):
@@ -799,6 +841,9 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
     elif loc0 == 'u':
         new_sucessor = successors1 + successors0
         new_preds = preds1 + preds0
+    for succ in next_sucessors:
+        if succ in new_sucessor:
+            print('succ already exist! Need new function!')
     new_sucessor = new_sucessor + next_sucessors
     for i in range(len(table0)):
         for j in range(len(table1)):
@@ -823,9 +868,14 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
                                         front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
             new_tables = new_tables + new_table
             new_shapes = new_shapes + new_shape
-    rows_collect, depths_collect, space_collect, qubit_collect = get_collection(new_table)
+    rows_collect, depths_collect, space_collect, qubit_collect = get_collection(new_tables)
     new_valid = check_valid(rows_collect, depths_collect, space_collect, rows, qubit_collect, qubit_num)
-    print('g')
+    final_shapes = []
+    final_tables = []
+    for valid in new_valid:
+        final_tables.append(new_tables[valid])
+        final_shapes.append(new_shapes[valid])
+    return final_tables, final_shapes
 
 def check_combine_possible(shape0, shape1, loc0, loc1, next, rows, pos0, front0, front1,
                            starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits):
@@ -856,24 +906,23 @@ def check_combine_possible(shape0, shape1, loc0, loc1, next, rows, pos0, front0,
         new_table.append(table)
     elif pos0 == 'u': #shape0 down
         new_loc0 = [loc1[0] + 2, loc1[1]]
-        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
         new_table.append(table)
         new_loc0 = [loc1[0] + 3, loc1[1] + 1]
-        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
         new_table.append(table)
         new_loc0 = [loc1[0] + 3, loc1[1] - 1]
-        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
         new_table.append(table)
         new_loc0 = [loc1[0] + 4, loc1[1]]
-        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds,
-                                           next_sucessors, end, qubits)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
         new_table.append(table)
     return new_shape, new_table
