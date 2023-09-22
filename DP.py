@@ -71,7 +71,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
         placed.append(onle_one_pre[combination[0]][0])
         nodes_left.remove(onle_one_pre[combination[0]][0])
         temp_table, temp_shape = combine(onle_one_pre[combination[0]][0], inde_table[combination[0] - 1], inde_shape[combination[0] - 1], inde_table[combination[1] - 1],
-                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph)
+                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph, qubits)
         onle_one_pre[combination[0]] = []
         onle_one_pre[combination[1]] = []
     return inde_table[0], inde_shape[0]
@@ -772,25 +772,34 @@ def find_combine(onle_one_pre):
             if i != j and onle_one_pre[i] == onle_one_pre[j]:
                 return [i, j]
 
-def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph):
+def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph, qubit_num):
     new_tables = []
     new_shapes = []
     parent0 = copy.deepcopy(table0[0])
-    successors0 = parent0['successor'].remove(next)
+    successors0 = parent0['successor']
+    successors0.remove(next)
     preds0 = parent0['preds']
     parent1 = copy.deepcopy(table1[0])
-    successors1 = parent1['successor'].remove(next)
+    successors1 = parent1['successor']
+    successors1.remove(next)
     preds1 = parent1['preds']
+    qubits = parent0['Q'] + parent1['Q']
     loc0 = check_loc(nodes, placed0, next, graph, [])
     loc1 = check_loc(nodes, placed1, next, graph, [])
+    next_sucessors = list(graph.successors(next))
+    if len(next_sucessors) == 1:
+        end = detec_end(next, next_sucessors[0], nodes)
+    else:
+        end = ''
     if loc0 == loc1:
         print('Wrong!')
     if loc0 == 'd':
         new_sucessor = successors0 + successors1
         new_preds = preds0 + preds1
-    elif loc1 == 'u':
+    elif loc0 == 'u':
         new_sucessor = successors1 + successors0
         new_preds = preds1 + preds0
+    new_sucessor = new_sucessor + next_sucessors
     for i in range(len(table0)):
         for j in range(len(table1)):
             parent0 = copy.deepcopy(table0[i])
@@ -810,50 +819,75 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
             point0 = table0[i]['front'][index0]
             point1 = table1[j]['front'][index1]
             gate, _ = next.split('.')
-            new_table, new_shape = check_combine_possible(shape0[i], shape1[j], point0, point1, gate, rows, loc0,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+            new_shape, new_table = check_combine_possible(shape0[i], shape1[j], point0, point1, next, rows, loc0, front0,
+                                        front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+            new_tables = new_tables + new_table
+            new_shapes = new_shapes + new_shape
+    rows_collect, depths_collect, space_collect, qubit_collect = get_collection(new_table)
+    new_valid = check_valid(rows_collect, depths_collect, space_collect, rows, qubit_collect, qubit_num)
+    print('g')
 
-def check_combine_possible(shape0, shape1, loc0, loc1, gate, rows, pos0,
-                           front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds):
+def check_combine_possible(shape0, shape1, loc0, loc1, next, rows, pos0, front0, front1,
+                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits):
     new_table = []
     new_shape = []
     if pos0 == 'd': #shape0 on top
         #first situation
         new_loc1 = [loc0[0] + 2, loc0[1]]
-        shape = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+        shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
         new_loc1 = [loc0[0] + 3, loc0[1] + 1]
-        shape = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+        shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
         new_loc1 = [loc0[0] + 3, loc0[1] - 1]
-        shape = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+        shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
+        new_loc1 = [loc0[0] + 4, loc0[1]]
+        shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds,
+                                           next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
     elif pos0 == 'u': #shape0 down
         new_loc0 = [loc1[0] + 2, loc1[1]]
-        shape = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, gate, rows,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
         new_loc0 = [loc1[0] + 3, loc1[1] + 1]
-        shape = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, gate, rows,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
         new_loc0 = [loc1[0] + 3, loc1[1] - 1]
-        shape = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, gate, rows,
-                                    front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds)
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
         new_shape.append(shape)
+        new_table.append(table)
+        new_loc0 = [loc1[0] + 4, loc1[1]]
+        shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front0, front1,
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds,
+                                           next_sucessors, end, qubits)
+        new_shape.append(shape)
+        new_table.append(table)
+    return new_shape, new_table
 
-def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows,
-                        front0, front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds): #loc0 is the upper shape
+def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
+                        starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits): #loc0 is the upper shape
+    gate, _ = next.split('.')
     new_shape = copy.deepcopy(shape0)
+    new_table = []
     total_row = new_loc1[0] + len(shape1) - loc1[0]
     temp_loc0 = copy.deepcopy(loc0)
     temp_loc1 = copy.deepcopy(loc1)
     if total_row > rows:
-        return []
+        return [], new_table
     if total_row > len(new_shape):
         for i in range(total_row - len(new_shape)):
             new_shape.append([0]*len(new_shape[0]))
@@ -864,18 +898,19 @@ def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows,
         temp_loc0[1] = temp_loc0[1] + length_difference
         new_loc1[1] = new_loc1[1] + length_difference
     new_length = max(len(shape1[0]) - loc1[1] + new_loc1[1], temp_loc0[1] + len(shape0[0]) - loc0[1])
-    if new_loc1[1] == temp_loc0[1]:
+    if new_loc1[1] == temp_loc0[1] and abs(new_loc1[0] - temp_loc0[0]) == 2:
         new_length = max(new_length, new_loc1[1] + 3)
         place_pt = [temp_loc0[0], temp_loc0[1] + 1]
     elif new_loc1[1] - temp_loc0[1] == 1:
         new_length = max(new_length, new_loc1[1] + 2)
         place_pt = [temp_loc0[0], temp_loc0[1] + 1]
-    elif temp_loc0[1] - new_loc1[1] == 1:
+    elif temp_loc0[1] - new_loc1[1] == 1 or abs(new_loc1[0] - temp_loc0[0]) == 4:
         new_length = max(new_length, temp_loc0[1] + 2)
         place_pt = [temp_loc0[0] + 1, temp_loc0[1]]
     if new_length > len(new_shape[0]):
+        extra_len = new_length - len(new_shape[0])
         for i in range(len(new_shape)):
-            new_shape[i] = new_shape[i] + (new_length - len(shape0[0]))*[0]
+            new_shape[i] = new_shape[i] + extra_len*[0]
     start_pt = [new_loc1[0] - temp_loc1[0], new_loc1[1] - temp_loc1[1]]
     for i in range(len(shape1)):
         for j in range(len(shape1[0])):
@@ -885,14 +920,76 @@ def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, gate, rows,
     if gate == 'A':
         for i in range(3):
             new_shape[place_pt[0] + i][place_pt[1]] = 1
+        new_pts = [[place_pt[0], place_pt[1]],[place_pt[0] + 2, place_pt[1]]]
     elif gate == 'B':
         for i in range(3):
             for j in range(2):
                 new_shape[place_pt[0] + i][place_pt[1] + j] = 1
+        new_pts = [[place_pt[0], place_pt[1] + 1], [place_pt[0] + 2, place_pt[1] + 1]]
     #create table
+    new_shape, space = fill_shape(new_shape)
+    X_offset0 = temp_loc0[0] - loc0[0]
+    Y_offset0 = temp_loc0[1] - loc0[1]
+    X_offset1 = new_loc1[0] - loc1[0]
+    Y_offset1 = new_loc1[1] - loc1[1]
+    front0 = copy.deepcopy(front0)
+    front1 = copy.deepcopy(front1)
+    targets0 = copy.deepcopy(targets0)
+    targets1 = copy.deepcopy(targets1)
+    starts0 = copy.deepcopy(starts0)
+    starts1 = copy.deepcopy(starts1)
+    ends0 = copy.deepcopy(ends0)
+    ends1 = copy.deepcopy(ends1)
+    for i in range(len(front0)):
+        front0[i][0] = front0[i][0] + X_offset0
+        front0[i][1] = front0[i][1] + Y_offset0
+    for i in range(len(front1)):
+        front1[i][0] = front1[i][0] + X_offset1
+        front1[i][1] = front1[i][1] + Y_offset1
+    for i in range(len(targets0)):
+        targets0[i][0] = targets0[i][0] + X_offset0
+        targets0[i][1] = targets0[i][1] + Y_offset0
+    for i in range(len(targets1)):
+        targets1[i][0] = targets1[i][0] + X_offset1
+        targets1[i][1] = targets1[i][1] + Y_offset1
+    for i in range(len(starts0)):
+        starts0[i][0] = starts0[i][0] + X_offset0
+        starts0[i][1] = starts0[i][1] + Y_offset0
+    for i in range(len(starts1)):
+        starts1[i][0] = starts1[i][0] + X_offset1
+        starts1[i][1] = starts1[i][1] + Y_offset1
+    for i in range(len(ends0)):
+        ends0[i][0] = ends0[i][0] + X_offset0
+        ends0[i][1] = ends0[i][1] + Y_offset0
+    for i in range(len(ends1)):
+        ends1[i][0] = ends1[i][0] + X_offset1
+        ends1[i][1] = ends1[i][1] + Y_offset1
+    new_starts = starts0 + starts1
+    new_target = targets0 + targets1
+    new_ends = ends0 + ends1
+    if len(next_sucessors) == 2:
+        new_front = front0 + front1 + new_pts
+    elif end == 'u':
+        new_front = front0 + front1 + [new_pts[1]]
+        new_ends.append(new_pts[0])
+    elif end == 'd':
+        new_front = front0 + front1 + [new_pts[0]]
+        new_ends.append(new_pts[1])
+    elif len(next_sucessors) == 1:
+        new_ends = new_ends + new_pts
+    new_table = {'New': next, 'P': 'NA', 'row': len(new_shape), 'S': space, 'D': len(new_shape[0]), 'Q': qubits,
+        'front': new_front, 'successor': new_sucessor, 'targets':new_target, 'preds': new_preds, 'starts':new_starts, 'ends':new_ends}
+    return new_shape, new_table
 
-    return new_shape
-
-
-
+def get_collection(new_table):
+    rows_collect = []
+    depths_collect = []
+    space_collect = []
+    qubit_collect = []
+    for table in new_table:
+        rows_collect.append(table['row'])
+        depths_collect.append(table['D'])
+        space_collect.append(table['S'])
+        qubit_collect.append(table['Q'])
+    return rows_collect, depths_collect, space_collect, qubit_collect
 
