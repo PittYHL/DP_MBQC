@@ -79,8 +79,8 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
         placed = inde_placed[combination[0] - 1] + inde_placed[combination[1] - 1]
         placed.append(onle_one_pre[combination[0]][0])
         nodes_left.remove(onle_one_pre[combination[0]][0])
-        temp_table, temp_shape = combine(onle_one_pre[combination[0]][0], inde_table[combination[0] - 1], inde_shape[combination[0] - 1], inde_table[combination[1] - 1],
-                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph, qubits)
+        temp_table, temp_shape, placed, nodes_left = combine(onle_one_pre[combination[0]][0], inde_table[combination[0] - 1], inde_shape[combination[0] - 1], inde_table[combination[1] - 1],
+                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph, qubits, placed, nodes_left)
         onle_one_pre[combination[0]] = []
         onle_one_pre[combination[1]] = []
         i = i + 1
@@ -814,9 +814,10 @@ def find_combine(onle_one_pre):
             if i != j and onle_one_pre[i] == onle_one_pre[j] and onle_one_pre[i] != []:
                 return [i, j]
 
-def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph, qubit_num):
+def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph, qubit_num, placed, nodes_left):
     new_tables = []
     new_shapes = []
+    c_gate = next.split('.')
     parent0 = copy.deepcopy(table0[0])
     successors0 = parent0['successor']
     successors0.remove(next)
@@ -841,9 +842,19 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
     elif loc0 == 'u':
         new_sucessor = successors1 + successors0
         new_preds = preds1 + preds0
+    nextnext = 0
+    if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(next_sucessors) == 1:
+        end = detec_end(next, next_sucessors[0], nodes)
+        if end == 0:
+            nextnext = next_sucessors[0]
+            same_qubit = 1
     for succ in next_sucessors:
         if succ in new_sucessor:
-            print('succ already exist! Need new function!')
+            nextnext = succ
+        if succ not in placed:
+            new_sucessor.append(succ)
+            if same_qubit == 1:
+                new_sucessor.append(succ)
     new_sucessor = new_sucessor + next_sucessors
     for i in range(len(table0)):
         for j in range(len(table1)):
@@ -868,14 +879,24 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
                                         front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
             new_tables = new_tables + new_table
             new_shapes = new_shapes + new_shape
-    rows_collect, depths_collect, space_collect, qubit_collect = get_collection(new_tables)
+    rows_collect, depths_collect, space_collect, qubit_collect, front_collect, targets_collect, starts_collect, ends_collect = get_collection(new_tables)
+    while nextnext != 0:
+        placed.append(nextnext)
+        next = nextnext
+        nodes_left.remove(next)
+        print(next)
+        newnew_sucessors = list(graph.successors(nextnext))
+        parents = ['NA']*len(new_shape)
+        new_shapes, front_collect, space_collect, successors, nextnext, parents, same_qubit, targets_collect, starts_collect, ends_collect = fill_nextnext(new_shapes, front_collect, space_collect, successors, nextnext, newnew_sucessors, parents,
+            nodes, same_qubit, targets_collect, starts_collect, ends_collect)
+        new_tables, rows_collect, depths_collect, qubit_collect = update_table(next, qubit_collect[0], new_shapes, front_collect, space_collect, successors, targets_collect, new_preds, starts_collect, ends_collect)
     new_valid = check_valid(rows_collect, depths_collect, space_collect, rows, qubit_collect, qubit_num)
     final_shapes = []
     final_tables = []
     for valid in new_valid:
         final_tables.append(new_tables[valid])
         final_shapes.append(new_shapes[valid])
-    return final_tables, final_shapes
+    return final_tables, final_shapes, placed, nodes_left
 
 def check_combine_possible(shape0, shape1, loc0, loc1, next, rows, pos0, front0, front1,
                            starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits):
@@ -1035,10 +1056,32 @@ def get_collection(new_table):
     depths_collect = []
     space_collect = []
     qubit_collect = []
+    front_collect = []
+    ends_collect = []
+    starts_collect = []
+    targets_collect = []
     for table in new_table:
         rows_collect.append(table['row'])
         depths_collect.append(table['D'])
         space_collect.append(table['S'])
         qubit_collect.append(table['Q'])
-    return rows_collect, depths_collect, space_collect, qubit_collect
+        front_collect.append(table['front'])
+        ends_collect.append(table['ends'])
+        starts_collect.append(table['starts'])
+        targets_collect.append(table['targets'])
+    return rows_collect, depths_collect, space_collect, qubit_collect, front_collect, targets_collect, starts_collect, ends_collect
 
+def update_table(next, qubits, new_shapes, front_collect, space_collect, successors, targets_collect, new_preds, starts_collect, ends_collect):
+    new_tables = []
+    rows_collect = []
+    depths_collect = []
+    qubit_collects = []
+    for i in range(len(new_shapes)):
+        rows_collect.append(len(new_shapes[i]))
+        depths_collect.append(len(new_shapes[i][0]))
+        qubit_collects.append(qubits)
+        new_table = {'New': next, 'P': 'NA', 'row': len(new_shapes[i]), 'S': space_collect[i], 'D': len(new_shapes[i][0]), 'Q': qubits,
+                     'front': front_collect[i], 'successor': successors, 'targets': targets_collect[i], 'preds': new_preds,
+                     'starts': starts_collect[i], 'ends': ends_collect[i]}
+        new_tables.append(new_table)
+    return new_tables, rows_collect, depths_collect, qubit_collects
