@@ -2,6 +2,7 @@ import copy
 import random
 
 longest = 100
+final_keep = 10
 def place_leaves(table, shapes, first, last, rows):
     last_table = table
     last_shapes = shapes
@@ -23,7 +24,8 @@ def place_leaves(table, shapes, first, last, rows):
         starts = copy.deepcopy(short_table[i]['starts'])
         ends = copy.deepcopy(short_table[i]['ends'])
         shape = short_shapes[i]
-        depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i] = place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves)
+        depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i], final_shapes = \
+            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes)
     return final_shapes
 
 def generate_leaves(available_length):
@@ -213,7 +215,7 @@ def sort_shape(last_table, last_shapes):
             valid_shapes.append(last_shapes[i])
     return valid_table, valid_shapes
 
-def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves):
+def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
     front_locs = [[] for _ in range(len(starts) + 1)]
@@ -250,7 +252,10 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
                     if depth < shortest:
                         shortest = depth
         if len(depth_list) > longest:
-            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1] = remove_short_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list)
+            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = remove_short_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list)
+    if len(depth_list) > final_keep:
+        front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = remove_short_front(
+            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, final_keep)
     #for back
     back_shapes[0].append(copy.deepcopy(original_shape))
     back_leaves[0].append([])
@@ -274,12 +279,16 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
                     if depth < shortest:
                         shortest = depth
         if len(depth_list) > longest:
-            back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1] = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list)
+            back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list)
         if len(back_shapes[i + 1]) == 0:
             print('back_shapes is empty')
-    shortest_depth = count_shortest(original_shape, all_paths, front_shapes[-1], front_leaves[-1], front_locs[-1], starts, first,
+    if len(depth_list) > final_keep:
+        back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = \
+            remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, final_keep)
+    shortest_depth, shortest_shapes = count_shortest(original_shape, all_paths, front_shapes[-1], front_leaves[-1], front_locs[-1], starts, first,
                                     back_shapes[-1], back_leaves[-1], back_locs[-1], ends, last)
-    return shortest_depth, front_locs[-1], front_leaves[-1], starts, back_locs[-1], back_leaves[-1], ends
+    final_shapes = final_shapes + shortest_shapes
+    return shortest_depth, front_locs[-1], front_leaves[-1], starts, back_locs[-1], back_leaves[-1], ends, final_shapes
 
 def check_start(temp_shape, start):
     available_locs = []
@@ -448,7 +457,7 @@ def count_depth(new_shape):
             break
     return last + 1 -first
 
-def remove_short_front(shapes, leaves, locs, depth_list):
+def remove_short_front(shapes, leaves, locs, depth_list, longest = longest):
     if len(list(set(depth_list))) == 1:
         indexes = []
         for i in range(len(depth_list)):
@@ -460,7 +469,7 @@ def remove_short_front(shapes, leaves, locs, depth_list):
             leaves.pop(i)
             locs.pop(i)
             depth_list.pop(i)
-        return shapes, leaves, locs
+        return shapes, leaves, locs, depth_list
     while(len(shapes) > longest and len(list(set(depth_list))) != 1):
         max_depth = max(depth_list)
         max_list = []
@@ -483,9 +492,9 @@ def remove_short_front(shapes, leaves, locs, depth_list):
             leaves.pop(i)
             locs.pop(i)
             depth_list.pop(i)
-    return shapes, leaves, locs
+    return shapes, leaves, locs, depth_list
 
-def remove_short_end(shapes, leaves, locs, depth_list):
+def remove_short_end(shapes, leaves, locs, depth_list, longest = longest):
     if len(list(set(depth_list))) == 1:
         indexes = []
         for i in range(len(depth_list)):
@@ -497,7 +506,7 @@ def remove_short_end(shapes, leaves, locs, depth_list):
             leaves.pop(i)
             locs.pop(i)
             depth_list.pop(i)
-        return shapes, leaves, locs
+        return shapes, leaves, locs, depth_list
     while(len(shapes) > longest and len(list(set(depth_list))) != 1):
         max_depth = max(depth_list)
         max_list = []
@@ -520,12 +529,16 @@ def remove_short_end(shapes, leaves, locs, depth_list):
             leaves.pop(i)
             locs.pop(i)
             depth_list.pop(i)
-    return shapes, leaves, locs
+    return shapes, leaves, locs, depth_list
 
 def count_shortest(original_shape, all_paths, front_shapes, front_leaves, front_locs,
                    starts, first, back_shapes, back_leaves, back_locs, ends, last):
     shortest_front = 100000
     shortest_end = 100000
+    shortest_depth = 1000000
+    final_shapes = []
+    front_indexes = []
+    back_indexes = []
     for i in range(len(front_shapes)):
         if shortest_front > count_depth(front_shapes[i]):
             shortest_front = count_depth(front_shapes[i])
@@ -534,15 +547,18 @@ def count_shortest(original_shape, all_paths, front_shapes, front_leaves, front_
             shortest_end = count_depth(back_shapes[i])
     for i in range(len(front_shapes)):
         if count_depth(front_shapes[i]) == shortest_front:
-            front_index = i
-            break
+            front_indexes.append(i)
     for i in range(len(back_shapes)):
         if count_depth(back_shapes[i]) == shortest_end:
-            back_index = i
-            break
-    final_shape, final_depth = fill_final(original_shape, all_paths, front_leaves[front_index], front_locs[front_index], starts, first,
-                                          back_leaves[back_index], back_locs[back_index], ends, last)
-    return final_depth
+            back_indexes.append(i)
+    for i in range(len(front_indexes)):
+        for j in range(len(back_indexes)):
+            temp_shape, temp_depth = fill_final(original_shape, all_paths, front_leaves[front_indexes[i]], front_locs[front_indexes[i]], starts, first,
+                                          back_leaves[back_indexes[j]], back_locs[back_indexes[j]], ends, last)
+            if temp_depth < shortest_depth:
+                shortest_depth = temp_depth
+            final_shapes.append(temp_shape)
+    return shortest_depth, final_shapes
 
 def fill_final(original_shape, all_paths, front_leave, front_loc,
                starts, first, back_leave, back_loc, ends, last):
@@ -579,5 +595,19 @@ def fill_final(original_shape, all_paths, front_leave, front_loc,
             back_paths[j][1] = back_paths[j][1] - offset_x
         for j in range(len(back_paths)):
             new_shape[back_paths[j][0]][back_paths[j][1]] = 1
+    new_shape = remove_empty(new_shape)
     return new_shape, count_depth(new_shape)
 
+def remove_empty(shape):
+    max_zeros = 100000
+    original_len = len(shape[0])
+    for row in shape:
+        for j in range(len(shape[0])):
+            if row[original_len - j - 1] != 0:
+                if j < max_zeros:
+                    max_zeros = j
+                break
+    for i in range(len(shape)):
+        for j in range(max_zeros):
+            shape[i].pop(-1)
+    return shape

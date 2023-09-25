@@ -5,6 +5,7 @@ from placement import *
 from To_graph import *
 from fill_map import *
 from leaves import *
+from last_step import *
 
 keep = 3
 long = 5
@@ -24,6 +25,7 @@ def DP(ori_map, qubits, rows):
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc)
     middle_shapes = shapes[-1]
     final_shapes = place_leaves(table, shapes, first, last, rows)
+    combination(final_shapes, new_map)
     print('g')
 
 def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
@@ -180,7 +182,7 @@ def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_
         next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node)  # chose the next
         if match_next_node:
             return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
-    return table[-1], shape[-1], placed, onle_one_pre, nodes_left
+    return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
 
 def choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node):
     next = []
@@ -843,6 +845,7 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
         new_sucessor = successors1 + successors0
         new_preds = preds1 + preds0
     nextnext = 0
+    same_qubit = 0
     if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(next_sucessors) == 1:
         end = detec_end(next, next_sucessors[0], nodes)
         if end == 0:
@@ -855,11 +858,11 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
             new_sucessor.append(succ)
             if same_qubit == 1:
                 new_sucessor.append(succ)
-    new_sucessor = new_sucessor + next_sucessors
+    # new_sucessor = new_sucessor + next_sucessors
     for i in range(len(table0)):
         for j in range(len(table1)):
             parent0 = copy.deepcopy(table0[i])
-            parent1 = copy.deepcopy(table1[i])
+            parent1 = copy.deepcopy(table1[j])
             front0 = parent0['front']
             starts0 = parent0['starts']
             ends0 = parent0['ends']
@@ -886,10 +889,10 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
         nodes_left.remove(next)
         print(next)
         newnew_sucessors = list(graph.successors(nextnext))
-        parents = ['NA']*len(new_shape)
-        new_shapes, front_collect, space_collect, successors, nextnext, parents, same_qubit, targets_collect, starts_collect, ends_collect = fill_nextnext(new_shapes, front_collect, space_collect, successors, nextnext, newnew_sucessors, parents,
+        parents = ['NA']*len(new_shapes)
+        new_shapes, front_collect, space_collect, new_sucessor, nextnext, parents, same_qubit, targets_collect, starts_collect, ends_collect = fill_nextnext(new_shapes, front_collect, space_collect, new_sucessor, nextnext, newnew_sucessors, parents,
             nodes, same_qubit, targets_collect, starts_collect, ends_collect)
-        new_tables, rows_collect, depths_collect, qubit_collect = update_table(next, qubit_collect[0], new_shapes, front_collect, space_collect, successors, targets_collect, new_preds, starts_collect, ends_collect)
+        new_tables, rows_collect, depths_collect, qubit_collect = update_table(next, qubit_collect[0], new_shapes, front_collect, space_collect, new_sucessor, targets_collect, new_preds, starts_collect, ends_collect)
     new_valid = check_valid(rows_collect, depths_collect, space_collect, rows, qubit_collect, qubit_num)
     final_shapes = []
     final_tables = []
