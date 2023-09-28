@@ -54,7 +54,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
         place_independent(current, graph, inde_qubit_record[0], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
                         current_independent_node, placed)
     if len(independet_node) == 1:
-        return inde_table, inde_shape
+        return inde_table[-1], inde_shape[-1]
     i = 0
     for i in range(1, len(independet_node)):
         current = current_independent_node.pop(0)
@@ -135,6 +135,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1]],
                      'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[2,1]]})
     shape[0].append(temp_shape)
+    valid[0].append(0)
     next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node)
     if match_next_node:
         return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
@@ -161,6 +162,8 @@ def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_
     index = 0
     onle_one_pre = []  # record node with only one predecessor placed
     valid = [[]]
+    for i in range(len(shape)):
+        valid[0].append(i)
     two_wire = []  # for node both predecessors are wires
     next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire,
                                                       onle_one_pre, independent_node)

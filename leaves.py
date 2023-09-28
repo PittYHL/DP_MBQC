@@ -1,9 +1,12 @@
 import copy
 import random
 
-longest = 100
-final_keep = 10
+longest = 200
+final_keep = 15
 def place_leaves(table, shapes, first, last, rows):
+    for i in range(len(first)):
+        if first[i] < 0:
+            first[i] = abs(first[i])
     last_table = table
     last_shapes = shapes
     final_shapes = []
@@ -53,6 +56,8 @@ def generate_leaves(available_length):
             if new_leaves[j] not in leaves[length] or new_paths[j] not in paths[length]:
                 leaves[length].append(new_leaves[j])
                 paths[length].append(new_paths[j])
+    leaves[0] = [[[1]]]
+    paths[0] = [[[0, 0]]]
     return leaves, paths
 
 def generate_next(next, loc, path):
@@ -610,4 +615,16 @@ def remove_empty(shape):
     for i in range(len(shape)):
         for j in range(max_zeros):
             shape[i].pop(-1)
+    max_zeros = 100000
+    original_len = len(shape[0])
+    for row in shape:
+        for j in range(len(shape[0])):
+            if row[j] != 0:
+                if j < max_zeros:
+                    max_zeros = j
+                break
+    if max_zeros > 0:
+        for i in range(len(shape)):
+            for j in range(max_zeros):
+                shape[i].pop(0)
     return shape

@@ -4,14 +4,6 @@ A 2
 A 3
 A 4
 A 5
-A 0
-RZ 1
-RZ 2
-RZ 3
-RZ 4
-RZ 5
-RZ 0
-RZ 3
 CP 0 1
 CP 0 2
 CP 1 2
@@ -33,9 +25,3 @@ A 2
 RZ 3
 A 4
 A 5
-RZ 0
-RZ 1
-RZ 2
-RZ 3
-RZ 4
-RZ 5
