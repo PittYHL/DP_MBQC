@@ -8,7 +8,7 @@ from leaves import *
 from last_step import *
 
 keep = 3
-long = 5
+long = 4
 def DP(ori_map, qubits, rows):
     new_map = []
     for row in ori_map:
