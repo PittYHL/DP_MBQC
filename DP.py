@@ -23,8 +23,11 @@ def DP(ori_map, qubits, rows):
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map)
 
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc)
+    print("finish placing core")
+    print("number of core: ", len(shapes))
     middle_shapes = shapes[-1]
     final_shapes = place_leaves(table, shapes, first, last, rows)
+    print("number of final shapes: ", len(shapes))
     combination(final_shapes, new_map)
     print('g')
 
@@ -154,7 +157,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
             placed.append(j)
         next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node)  # chose the next
         if match_next_node:
-            return table[-1], shape[-1], placed, onle_one_pre, nodes_left
+            return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
     return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
 
 def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
@@ -512,6 +515,7 @@ def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, vali
     depths = []
     table.append([])
     shape.append([])
+    invalid_list = []
     for i in range(len(shapes)):
         rows.append(len(shapes[i]))
         depths.append(len(shapes[i][0]))
@@ -519,9 +523,18 @@ def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, vali
         end = ends[i]
         start.sort()
         end.sort()
+        valid_starts_end = check_valid_start_end(start, end)
+        if valid_starts_end == 0:
+            invalid_list.append(i)
+            continue
         table[p_index + 1].append({'New': current, 'P': parents[i], 'row': len(shapes[i]), 'S': spaces[i], 'D': depths[i], 'Q': c_qubit,
         'front': fronts[i], 'successor': successors, 'targets':wire_targets[i], 'preds': new_preds, 'starts':start, 'ends':end})
         shape[p_index + 1].append(shapes[i])
+    invalid_list.sort(reverse=True)
+    for index in invalid_list:
+        rows.pop(index)
+        depths.pop(index)
+        spaces.pop(index)
     new_valid = check_valid(rows, depths, spaces, row_limit, c_qubit, qubits)
     valid.append(new_valid)
 
@@ -1091,3 +1104,15 @@ def update_table(next, qubits, new_shapes, front_collect, space_collect, success
                      'starts': starts_collect[i], 'ends': ends_collect[i]}
         new_tables.append(new_table)
     return new_tables, rows_collect, depths_collect, qubit_collects
+
+def check_valid_start_end(start, end):
+    valid = 1
+    if len(start) != 0:
+        for i in range(len(start) - 1):
+            if abs(start[i + 1][0] - start[i][0]) < 2:
+                return 0
+    if len(end) != 0:
+        for i in range(len(end) - 1):
+            if abs(end[i + 1][0] - end[i][0]) < 2:
+                return 0
+    return 1

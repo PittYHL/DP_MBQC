@@ -1,7 +1,7 @@
 import copy
 from itertools import *
 from dense import *
-maximum = 500
+maximum = 250
 import numpy as np
 from dense import convert_new_map2
 
@@ -18,6 +18,7 @@ def combination(final_shapes, ori_map):
             shortest_shape.append(shape)
     shortest_shape, _ = sort_shape(shortest_shape, indexes)
     shortest_shape = double_shape(shortest_shape)
+    print("the number of final shapes are ", len(shortest_shape))
     arr = []
     for i in range(len(shortest_shape)):
         arr.append(i)
@@ -74,7 +75,7 @@ def double_shape(shortest_shape):
     return shortest_shape
 
 def original_reduction(shortest, ori_map):
-    reductions = []
+    reductions = [0]
     index = -1
     shortest_shape = copy.deepcopy(shortest)
     shortest_shape.insert(0, ori_map)

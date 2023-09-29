@@ -1,8 +1,10 @@
 import copy
 import random
+import numpy as np
 
-longest = 200
-final_keep = 15
+input_shape = 10
+longest = 100
+final_keep = 10
 def place_leaves(table, shapes, first, last, rows):
     for i in range(len(first)):
         if first[i] < 0:
@@ -23,7 +25,12 @@ def place_leaves(table, shapes, first, last, rows):
     start_locs = [[] for _ in range(len(short_table))]
     end_locs = [[] for _ in range(len(short_table))]
     depths = [0] * len(short_table)
+    print("Shpaes number: ", len(short_table))
+    # for i in range(len(short_shapes)):
+    #     n_map = np.array(short_shapes[i])
+    #     np.savetxt("example/vqe14_middle"+ str(i) +".csv", n_map, fmt = '%s',delimiter=",")
     for i in range(len(short_table)):
+        print("placing shape ", i)
         starts = copy.deepcopy(short_table[i]['starts'])
         ends = copy.deepcopy(short_table[i]['ends'])
         shape = short_shapes[i]
@@ -214,10 +221,14 @@ def sort_shape(last_table, last_shapes):
     for table in last_table:
         depth_list.append(table['D'])
     min_dep = min(depth_list)
-    for i in range(len(last_table)):
-        if last_table[i]['D'] == min_dep:
-            valid_table.append(last_table[i])
-            valid_shapes.append(last_shapes[i])
+    while(len(valid_shapes) <= input_shape):
+        for i in range(len(last_table)):
+            if last_table[i]['D'] == min_dep and len(valid_shapes) <= input_shape:
+                valid_table.append(last_table[i])
+                valid_shapes.append(last_shapes[i])
+            elif len(valid_shapes) > input_shape:
+                return valid_table, valid_shapes
+        min_dep = min_dep + 1
     return valid_table, valid_shapes
 
 def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes):
@@ -227,6 +238,8 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     back_shapes = [[] for _ in range(len(starts) + 1)]
     back_leaves = [[] for _ in range(len(starts) + 1)]
     back_locs = [[] for _ in range(len(starts) + 1)]
+    start_rank, _, _ = rank_starts(starts, shape)
+    end_rank, _, _ = rank_ends(ends, shape)
     for i in range(len(starts)):
         starts[i][1] = starts[i][1] + max_first #change the x locs
         ends[i][1] = ends[i][1] + max_first
@@ -241,10 +254,11 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     for i in range(len(starts)):
         shortest = 100000
         depth_list = []
+        start_index = start_rank[i]
         for j in range(len(front_shapes[i])):
-            available_locs, available_dirs = check_start(front_shapes[i][j], starts[i])
+            available_locs, available_dirs = check_start(front_shapes[i][j], starts[start_index])
             for k in range(len(available_locs)):
-                new_shapes, new_leaves = place_leaf_front(front_shapes[i][j], front_leaves[i][j], available_locs[k], all_paths[first[i] - 1])
+                new_shapes, new_leaves = place_leaf_front(front_shapes[i][j], front_leaves[i][j], available_locs[k], all_paths[first[start_index] - 1])
                 front_leaves[i + 1] = front_leaves[i + 1] + new_leaves
                 for l in range(len(new_shapes)):
                     new_locs = copy.deepcopy(front_locs[i][j])
@@ -258,6 +272,9 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
                         shortest = depth
         if len(depth_list) > longest:
             front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = remove_short_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list)
+        if len(front_shapes[i + 1]) == 0:
+            print('front fail')
+            return [], [], [], [], [], [], [], final_shapes
     if len(depth_list) > final_keep:
         front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = remove_short_front(
             front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, final_keep)
@@ -268,10 +285,11 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     for i in range(len(ends)):
         shortest = 100000
         depth_list = []
+        end_index = end_rank[i]
         for j in range(len(back_shapes[i])):
-            available_locs, available_dirs = check_end(back_shapes[i][j], ends[i])
+            available_locs, available_dirs = check_end(back_shapes[i][j], ends[end_index])
             for k in range(len(available_locs)):
-                new_shapes, new_leaves = place_leaf_end(back_shapes[i][j], back_leaves[i][j], available_locs[k], all_paths[last[i] - 1])
+                new_shapes, new_leaves = place_leaf_end(back_shapes[i][j], back_leaves[i][j], available_locs[k], all_paths[last[end_index] - 1])
                 back_leaves[i + 1] = back_leaves[i + 1] + new_leaves
                 for l in range(len(new_shapes)):
                     new_locs = copy.deepcopy(back_locs[i][j])
@@ -286,12 +304,14 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
         if len(depth_list) > longest:
             back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list)
         if len(back_shapes[i + 1]) == 0:
-            print('back_shapes is empty')
+            print('back fail')
+            return [], [], [], [], [], [], [], final_shapes
     if len(depth_list) > final_keep:
         back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = \
             remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, final_keep)
-    shortest_depth, shortest_shapes = count_shortest(original_shape, all_paths, front_shapes[-1], front_leaves[-1], front_locs[-1], starts, first,
-                                    back_shapes[-1], back_leaves[-1], back_locs[-1], ends, last)
+    new_front_leaves, new_front_locs, new_back_leaves, new_back_locs = shuffle_locs(start_rank, front_leaves[-1], front_locs[-1], end_rank, back_leaves[-1], back_locs[-1]) #used to shuffle back the correct position
+    shortest_depth, shortest_shapes = count_shortest(original_shape, all_paths, front_shapes[-1], new_front_leaves, new_front_locs, starts, first,
+                                    back_shapes[-1], new_back_leaves, new_back_locs, ends, last)
     final_shapes = final_shapes + shortest_shapes
     return shortest_depth, front_locs[-1], front_leaves[-1], starts, back_locs[-1], back_leaves[-1], ends, final_shapes
 
@@ -628,3 +648,211 @@ def remove_empty(shape):
             for j in range(max_zeros):
                 shape[i].pop(0)
     return shape
+
+def rank_starts(starts, shape):
+    width = len(shape)
+    start_indexes = []
+    x_locs = []
+    up_y = -1 #if y upper than this, go up
+    down_y = -1 #if y lower than this, go down
+    left_most = [] #the indexes that store the left most starts
+    for start in starts:
+        x_locs.append(start[1])
+        if (start[1]) == 0:
+            left_most.append(starts.index(start))
+    sort_locs = copy.deepcopy(x_locs)
+    sort_locs.sort(reverse=True)
+    while(sort_locs) != []:
+        loc = sort_locs[0]
+        if sort_locs.count(loc) == 1:
+            start_indexes.append(x_locs.index(loc))
+            sort_locs.pop(0)
+        else:
+            indexes = find_indices(x_locs, loc)
+            together = 1
+            for i in range(len(indexes) - 1):
+                if indexes[i + 1] - indexes[i] != 1:
+                    together = 0
+            if sort_locs[0] != 0 and together and (indexes[0] > left_most[-1] or indexes[-1] < left_most[0]):
+                if indexes[0] > left_most[-1]:
+                    for i in reversed(range(len(indexes))):
+                        start_indexes.append(indexes[i])
+                        sort_locs.pop(0)
+                elif indexes[-1] < left_most[0]:
+                    for i in range(len(indexes)):
+                        start_indexes.append(indexes[i])
+                        sort_locs.pop(0)
+            # elif together and sort_locs[0] == 0 and indexes[0] == 0:
+            #     for i in reversed(range(len(indexes))):
+            #         start_indexes.append(indexes[i])
+            #         sort_locs.pop(0)
+            #     up_y = starts[0][0]
+            #     down_y = starts[0][0]
+            # elif together and sort_locs[0] == 0 and indexes[-1] == len(starts) - 1:
+            #     for i in range(len(indexes)):
+            #         start_indexes.append(indexes[i])
+            #         sort_locs.pop(0)
+            #     up_y = starts[-1][0]
+            #     down_y = starts[-1][0]
+            else:
+                y_locs = []
+                for i in indexes:
+                    y_locs.append(starts[i][0])
+                up = min(y_locs)
+                down = width - max(y_locs) - 1
+                if up > down:
+                    while(indexes) != []:
+                        ind = y_locs.index(min(y_locs))
+                        start_indexes.append(indexes[ind])
+                        if len(sort_locs) <= 2:
+                            up_y = y_locs[ind]
+                        indexes.pop(ind)
+                        y_locs.pop(ind)
+                        sort_locs.pop(0)
+                        if indexes != []:
+                            ind = y_locs.index(max(y_locs))
+                            start_indexes.append(indexes[ind])
+                            if len(sort_locs) <= 2:
+                                down_y = y_locs[ind]
+                            indexes.pop(ind)
+                            y_locs.pop(ind)
+                            sort_locs.pop(0)
+                else:
+                    while(indexes) != []:
+                        ind = y_locs.index(max(y_locs))
+                        start_indexes.append(indexes[ind])
+                        if len(sort_locs) <= 2:
+                            down_y = y_locs[ind]
+                        indexes.pop(ind)
+                        y_locs.pop(ind)
+                        sort_locs.pop(0)
+                        if indexes != []:
+                            ind = y_locs.index(min(y_locs))
+                            start_indexes.append(indexes[ind])
+                            if len(sort_locs) <= 2:
+                                up_y = y_locs[ind]
+                            indexes.pop(ind)
+                            y_locs.pop(ind)
+                            sort_locs.pop(0)
+    return start_indexes, up_y, down_y
+
+def rank_ends(ends, shape):
+    width = len(shape)
+    start_indexes = []
+    x_locs = []
+    up_y = -1  # if y upper than this, go up
+    down_y = -1  # if y lower than this, go down
+    right_most = []  # the indexes that store the left most starts
+    longest = 0
+    for end in ends:
+        x_locs.append(end[1])
+        if (end[1]) > longest:
+            longest = end[1]
+    for end in ends:
+        if end[1] == longest:
+            right_most.append(ends.index(end))
+    sort_locs = copy.deepcopy(x_locs)
+    sort_locs.sort()
+    while (sort_locs) != []:
+        loc = sort_locs[0]
+        if sort_locs.count(loc) == 1:
+            start_indexes.append(x_locs.index(loc))
+            sort_locs.pop(0)
+        else:
+            indexes = find_indices(x_locs, loc)
+            together = 1
+            for i in range(len(indexes) - 1):
+                if indexes[i + 1] - indexes[i] != 1:
+                    together = 0
+            if sort_locs[0] != longest and together and (indexes[0] > right_most[-1] or indexes[-1] < right_most[0]):
+                if indexes[0] > right_most[-1]:
+                    for i in reversed(range(len(indexes))):
+                        start_indexes.append(indexes[i])
+                        sort_locs.pop(0)
+                elif indexes[-1] < right_most[0]:
+                    for i in range(len(indexes)):
+                        start_indexes.append(indexes[i])
+                        sort_locs.pop(0)
+            elif together and sort_locs[0] == longest and indexes[0] == 0:
+                for i in reversed(range(len(indexes))):
+                    start_indexes.append(indexes[i])
+                    sort_locs.pop(0)
+                up_y = ends[0][0]
+                down_y = ends[0][0]
+            elif together and sort_locs[0] == longest and indexes[-1] == len(ends) - 1:
+                for i in range(len(indexes)):
+                    start_indexes.append(indexes[i])
+                    sort_locs.pop(0)
+                up_y = ends[-1][0]
+                down_y = ends[-1][0]
+            else:
+                y_locs = []
+                for i in indexes:
+                    y_locs.append(ends[i][0])
+                up = min(y_locs)
+                down = width - max(y_locs) - 1
+                if up > down:
+                    while (indexes) != []:
+                        ind = y_locs.index(min(y_locs))
+                        start_indexes.append(indexes[ind])
+                        if len(sort_locs) <= 2:
+                            up_y = y_locs[ind]
+                        indexes.pop(ind)
+                        y_locs.pop(ind)
+                        sort_locs.pop(0)
+                        if indexes != []:
+                            ind = y_locs.index(max(y_locs))
+                            start_indexes.append(indexes[ind])
+                            if len(sort_locs) <= 2:
+                                down_y = y_locs[ind]
+                            indexes.pop(ind)
+                            y_locs.pop(ind)
+                            sort_locs.pop(0)
+                else:
+                    while (indexes) != []:
+                        ind = y_locs.index(max(y_locs))
+                        start_indexes.append(indexes[ind])
+                        if len(sort_locs) <= 2:
+                            down_y = y_locs[ind]
+                        indexes.pop(ind)
+                        y_locs.pop(ind)
+                        sort_locs.pop(0)
+                        if indexes != []:
+                            ind = y_locs.index(min(y_locs))
+                            start_indexes.append(indexes[ind])
+                            if len(sort_locs) <= 2:
+                                up_y = y_locs[ind]
+                            indexes.pop(ind)
+                            y_locs.pop(ind)
+                            sort_locs.pop(0)
+    return start_indexes, up_y, down_y
+
+def find_indices(list_to_check, item_to_find):
+    indices = []
+    for idx, value in enumerate(list_to_check):
+        if value == item_to_find:
+            indices.append(idx)
+    return indices
+
+def shuffle_locs(start_rank, front_leaves, front_locs, end_rank, back_leaves, back_locs):
+    new_front_leaves = []
+    new_front_locs = []
+    new_back_leaves = []
+    new_back_locs = []
+    for i in range(len(front_leaves)):
+        new_leaf = [-1]*len(front_leaves[i])
+        new_locs = [-1]*len(front_leaves[i])
+        for j in range(len(start_rank)):
+            new_leaf[start_rank[j]] = front_leaves[i][j]
+            new_locs[start_rank[j]] = front_locs[i][j]
+        new_front_leaves.append(new_leaf)
+        new_front_locs.append(new_locs)
+    for i in range(len(back_leaves)):
+        new_leaf = [-1]*len(back_leaves[i])
+        new_locs = [-1]*len(back_leaves[i])
+        for j in range(len(start_rank)):
+            new_leaf[end_rank[j]] = back_leaves[i][j]
+            new_locs[end_rank[j]] = back_locs[i][j]
+        new_back_leaves.append(new_leaf)
+        new_back_locs.append(new_locs)
+    return new_front_leaves, new_front_locs, new_back_leaves, new_back_locs
