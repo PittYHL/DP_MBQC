@@ -26,9 +26,6 @@ def place_leaves(table, shapes, first, last, rows):
     end_locs = [[] for _ in range(len(short_table))]
     depths = [0] * len(short_table)
     print("Shpaes number: ", len(short_table))
-    # for i in range(len(short_shapes)):
-    #     n_map = np.array(short_shapes[i])
-    #     np.savetxt("example/vqe14_middle"+ str(i) +".csv", n_map, fmt = '%s',delimiter=",")
     for i in range(len(short_table)):
         print("placing shape ", i)
         starts = copy.deepcopy(short_table[i]['starts'])
@@ -221,7 +218,8 @@ def sort_shape(last_table, last_shapes):
     for table in last_table:
         depth_list.append(table['D'])
     min_dep = min(depth_list)
-    while(len(valid_shapes) <= input_shape):
+    min_dep2 = min_dep + 1
+    while(len(valid_shapes) <= input_shape and min_dep <= min_dep2):
         for i in range(len(last_table)):
             if last_table[i]['D'] == min_dep and len(valid_shapes) <= input_shape:
                 valid_table.append(last_table[i])

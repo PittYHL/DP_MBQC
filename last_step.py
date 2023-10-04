@@ -29,27 +29,22 @@ def combination(final_shapes, ori_map):
 
 def sort_shape(shapes, old_indexes):
     indexes = []
-    if len(shapes) <= maximum:
-        for i in range(len(shapes)):
-            indexes.append(old_indexes[i])
-        return shapes, indexes
-    else:
-        temp_shapes = copy.deepcopy(shapes)
-        spaces = []
-        shortest_shape = []
-        for shape in shapes:
-            space = check_space(shape)
-            spaces.append(space)
-        temp_spaces = copy.deepcopy(spaces)
-        temp_spaces.sort(reverse=True)
-        while len(shortest_shape) != maximum:
-            depth = temp_spaces.pop(0)
-            index = spaces.index(depth)
-            spaces.pop(index)
-            shape = temp_shapes.pop(index)
-            indexes.append(old_indexes[shapes.index(shape)])
-            shortest_shape.append(shape)
-        return shortest_shape, indexes
+    temp_shapes = copy.deepcopy(shapes)
+    spaces = []
+    shortest_shape = []
+    for shape in shapes:
+        space = check_space(shape)
+        spaces.append(space)
+    temp_spaces = copy.deepcopy(spaces)
+    temp_spaces.sort(reverse=True)
+    while len(shortest_shape) != maximum:
+        depth = temp_spaces.pop(0)
+        index = spaces.index(depth)
+        spaces.pop(index)
+        shape = temp_shapes.pop(index)
+        indexes.append(old_indexes[shapes.index(shape)])
+        shortest_shape.append(shape)
+    return shortest_shape, indexes
 
 def check_space(shape):
     space = 0

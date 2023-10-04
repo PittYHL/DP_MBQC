@@ -6,6 +6,7 @@ from To_graph import *
 from fill_map import *
 from leaves import *
 from last_step import *
+from iterations import keep_placing
 
 keep = 3
 long = 4
@@ -26,6 +27,8 @@ def DP(ori_map, qubits, rows):
     print("finish placing core")
     print("number of core: ", len(shapes))
     middle_shapes = shapes[-1]
+    flip = False
+    keep_placing(table, shapes, first, last, rows, flip)
     final_shapes = place_leaves(table, shapes, first, last, rows)
     print("number of final shapes: ", len(shapes))
     combination(final_shapes, new_map)
