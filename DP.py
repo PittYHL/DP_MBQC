@@ -27,12 +27,16 @@ def DP(ori_map, qubits, rows):
     print("finish placing core")
     print("number of core: ", len(shapes))
     middle_shapes = shapes[-1]
-    flip = False
-    keep_placing(table, shapes, first, last, rows, flip)
+    flip = True
     final_shapes = place_leaves(table, shapes, first, last, rows)
-    print("number of final shapes: ", len(shapes))
-    combination(final_shapes, new_map)
-    print('g')
+    final_shapes = sort_final_shapes(final_shapes)
+    valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    print("original depth: ", len(new_map[0]))
+    print("Optimized depth: ", len(final_shapes[0][0]))
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map)
+    # print("number of final shapes: ", len(shapes))
+    # combination(final_shapes, new_map)
+    # print('g')
 
 def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc):
     # n_nodes = np.array(nodes)
@@ -1119,3 +1123,26 @@ def check_valid_start_end(start, end):
             if abs(end[i + 1][0] - end[i][0]) < 2:
                 return 0
     return 1
+
+def sort_final_shapes(final_shapes):
+    max_width = 0
+    min_depth = 1000000
+    for shape in final_shapes:
+        if len(shape) > max_width:
+            max_width = len(shape)
+        if len(shape[0]) < min_depth:
+            min_depth = len(shape[0])
+    final_final_shapes = []
+    for shape in final_shapes:
+        if len(shape) == max_width and len(shape[0]) == min_depth:
+            final_final_shapes.append(shape)
+    return final_final_shapes
+
+def sort_new_shapes(table, shapes, final_shapes):
+    valid_table = []
+    valid_shapes = []
+    for i in range(len(shapes)):
+        if len(shapes[i]) == len(final_shapes[0]):
+            valid_table.append(table[i])
+            valid_shapes.append(shapes[i])
+    return valid_table, valid_shapes

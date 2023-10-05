@@ -17,7 +17,7 @@ def place_leaves(table, shapes, first, last, rows):
     available_length = list(set(all_length))
     available_length.sort()
     all_leaves, all_paths = generate_leaves(available_length) #generate leaves of all the length
-    short_table, short_shapes = sort_shape(last_table, last_shapes)
+    short_table, short_shapes = sort_shapes(last_table, last_shapes)
     front_leaves = [[] for _ in range(len(short_table))]
     front_locs = [[] for _ in range(len(short_table))]
     back_leaves = [[] for _ in range(len(short_table))]
@@ -211,7 +211,7 @@ def update_path(path): #update path whem upper row is inserted
         path[i][0] = path[i][0] + 1
     return path
 
-def sort_shape(last_table, last_shapes):
+def sort_shapes(last_table, last_shapes):
     depth_list = []
     valid_table = []
     valid_shapes = []
@@ -273,9 +273,9 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
         if len(front_shapes[i + 1]) == 0:
             print('front fail')
             return [], [], [], [], [], [], [], final_shapes
-    if len(depth_list) > final_keep:
+    if len(depth_list) > 1:
         front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = remove_short_front(
-            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, final_keep)
+            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, 1)
     #for back
     back_shapes[0].append(copy.deepcopy(original_shape))
     back_leaves[0].append([])
