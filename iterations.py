@@ -16,6 +16,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     reduction = ori_depth * 2 - double_depth
     ori_total_depth = ori_depth * (round + 1) - round * reduction
     print("original", round + 1, " iterations depth: ", ori_total_depth)
+    print("original reduction ", reduction)
     #sort the shortest shape
     for i in range(len(first)):
         if first[i] < 0:
@@ -72,6 +73,8 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         final_depth[r + 1] = temp_depths
         final_space[r + 1] = temp_spaces
     print("Optimized", round + 1, " iterations depth: ", final_depth[-1][0])
+    optimized_reduction = ((round + 1) * len(input_shapes[0][0]) - final_depth[-1][0]) / round
+    print("Optimized reduction", optimized_reduction)
 
 
 def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leaves, previous_shape, flip):
@@ -114,10 +117,10 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
                     depth_list.append(depth)
                     if depth < shortest:
                         shortest = depth
-        front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = fit_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1],
-                                                                                                depth_list, previous_shape, flip)
         if len(front_shapes[i + 1]) == 0:
             print('front fail')
+        front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = fit_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1],
+                                                                                                depth_list, previous_shape, flip)
     if len(depth_list) > 1:
         front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = fit_front(
             front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, previous_shape, flip, 1)
@@ -178,9 +181,6 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
     return final_shapes, final_depth, final_space
 
 def fit_front(shapes, leaves, locs, depth_list, previous_shape, flip, longest = longest): #choose the best front that fit the previous shape
-    if previous_shape == []:
-        shapes, leaves, locs, depth_list = remove_short_front(shapes, leaves, locs, depth_list)
-        return shapes, leaves, locs, depth_list
     new_shapes = []
     if flip:
         temp_shapes = flip_shape(shapes)
@@ -200,7 +200,12 @@ def fit_front(shapes, leaves, locs, depth_list, previous_shape, flip, longest = 
         for i in range(len(new_depth)):
             if new_depth[i] == max_depth:
                 max_list.append(i)
-        for i in reversed(max_list):
+        if len(shapes) - longest >= len(max_list):
+            chosen = max_list
+        else:
+            chosen = random.sample(max_list, len(new_depth) - longest)
+        chosen.sort()
+        for i in reversed(chosen):
             shapes.pop(i)
             leaves.pop(i)
             locs.pop(i)

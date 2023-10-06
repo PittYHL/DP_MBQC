@@ -10,7 +10,7 @@ from iterations import keep_placing
 
 keep = 3
 long = 4
-def DP(ori_map, qubits, rows):
+def DP(ori_map, qubits, rows, flip):
     new_map = []
     for row in ori_map:
         new_map.append([])
@@ -27,7 +27,6 @@ def DP(ori_map, qubits, rows):
     print("finish placing core")
     print("number of core: ", len(shapes))
     middle_shapes = shapes[-1]
-    flip = True
     final_shapes = place_leaves(table, shapes, first, last, rows)
     final_shapes = sort_final_shapes(final_shapes)
     valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
@@ -1141,8 +1140,12 @@ def sort_final_shapes(final_shapes):
 def sort_new_shapes(table, shapes, final_shapes):
     valid_table = []
     valid_shapes = []
+    shortest_depth = 1000000
     for i in range(len(shapes)):
-        if len(shapes[i]) == len(final_shapes[0]):
+        if len(shapes[i][0]) < shortest_depth:
+            shortest_depth = len(shapes[i][0])
+    for i in range(len(shapes)):
+        if len(shapes[i]) == len(final_shapes[0]) and len(shapes[i][0]) == shortest_depth:
             valid_table.append(table[i])
             valid_shapes.append(shapes[i])
     return valid_table, valid_shapes

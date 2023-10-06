@@ -211,17 +211,29 @@ def update_path(path): #update path whem upper row is inserted
         path[i][0] = path[i][0] + 1
     return path
 
-def sort_shapes(last_table, last_shapes):
+def sort_shapes(last_table, last_shapes): #current version only allows maximum width
     depth_list = []
     valid_table = []
     valid_shapes = []
+    width_list = []
     for table in last_table:
         depth_list.append(table['D'])
+        width_list.append(table['row'])
     min_dep = min(depth_list)
-    min_dep2 = min_dep + 1
+    max_width = max(width_list)
+    indexes = [] #record indexes of the shortest depth
+    for i in range(len(depth_list)):
+        if depth_list[i] == min_dep:
+            indexes.append(i)
+    shortest_depth_width = []
+    for i in indexes:
+        shortest_depth_width.append(width_list[i])
+    max_width = max(shortest_depth_width) #the max width with the shortest depth
+    # min_dep2 = min_dep + 1
+    min_dep2 = min_dep
     while(len(valid_shapes) <= input_shape and min_dep <= min_dep2):
         for i in range(len(last_table)):
-            if last_table[i]['D'] == min_dep and len(valid_shapes) <= input_shape:
+            if last_table[i]['D'] == min_dep and len(valid_shapes) <= input_shape and last_table[i]['row'] == max_width:
                 valid_table.append(last_table[i])
                 valid_shapes.append(last_shapes[i])
             elif len(valid_shapes) > input_shape:
@@ -499,7 +511,12 @@ def remove_short_front(shapes, leaves, locs, depth_list, longest = longest):
         for i in range(len(depth_list)):
             if depth_list[i] == max_depth:
                 max_list.append(i)
-        for i in reversed(max_list):
+        if len(shapes) - longest >= len(max_list):
+            chosen = max_list
+        else:
+            chosen = random.sample(max_list, len(depth_list) - longest)
+        chosen.sort()
+        for i in reversed(chosen):
             shapes.pop(i)
             leaves.pop(i)
             locs.pop(i)
