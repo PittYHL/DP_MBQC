@@ -7,7 +7,7 @@ from last_step import double_shape
 round = 2
 keep = 50
 longest = 50
-final_keep = 10 #for after placing back and kept
+final_keep = 6 #for after placing back and kept
 
 def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map):
     #show original depth
@@ -30,6 +30,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     available_length.sort()
     all_leaves, all_paths = generate_leaves(available_length) #generate leaves of all the length
     short_table, short_shapes = sort_shapes(last_table, last_shapes)
+    print(len(short_shapes), " short shapes")
     final_shapes = [[] for _ in range(round + 1)]
     final_depth = [[] for _ in range(round + 1)]
     final_space = [[] for _ in range(round + 1)]
@@ -42,7 +43,6 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         _, space = fill_shape(shape)
         temp_space.append(space)
     temp_shapes, temp_depths, temp_spaces = sort_round_shape(input_shapes, temp_depth, temp_space)
-
     final_shapes[0] = temp_shapes
     for shape in temp_shapes:
         final_depth[0].append(len(shape[0]))
@@ -59,8 +59,10 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         else:
             flip = 0
         for i in range(len(final_shapes[r])):
+            print(i, ' previous shapes')
             previous_shape = final_shapes[r][i]
             for j in range(len(short_shapes)):
+                print(j, ' short shapes')
                 starts = copy.deepcopy(short_table[j]['starts'])
                 ends = copy.deepcopy(short_table[j]['ends'])
                 shape = short_shapes[j]
@@ -152,7 +154,7 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
             back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = remove_short_end(back_shapes[i + 1],
                                                                                                     back_leaves[i + 1],
                                                                                                     back_locs[i + 1],
-                                                                                                    depth_list)
+                                                                                                    depth_list, longest)
         if len(back_shapes[i + 1]) == 0:
             print('back fail')
     if len(depth_list) > final_keep:
