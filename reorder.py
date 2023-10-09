@@ -28,7 +28,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qft27.txt') as f:
+with open('Benchmarks/iqp27b.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -253,7 +253,7 @@ if wire_remove:
     new_map = new_eliminate_redundant(new_map, qubits)
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
-# np.savetxt("example/iqp3el_111.csv", n_map, fmt = '%s',delimiter=",")
+np.savetxt("example/iqp27el_111.csv", n_map, fmt = '%s',delimiter=",")
 DP(new_map, qubits, rows, flip)
 # n_map = np.array(new_map)
 # np.savetxt("example/bv4el.csv", n_map, fmt = '%s',delimiter=",")

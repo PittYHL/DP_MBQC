@@ -8,8 +8,9 @@ from leaves import *
 from last_step import *
 from iterations import keep_placing
 
-keep = 3
-long = 4
+keep = 10
+long = 100
+restricted  = 0
 def DP(ori_map, qubits, rows, flip):
     new_map = []
     for row in ori_map:
@@ -404,11 +405,11 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
             if pred in preds:
                 prepre = pred
     # if c_gate != 'W' and nextnext == 0 and prepre == 0 and ((c_gate != 'C' and (placed_preds == [] or placed_preds[0] != 'C')) or restricted == 0):
-    if c_gate != 'W' and nextnext == 0 and prepre == 0 and (c_gate != 'C'):
+    if c_gate != 'W' and nextnext == 0 and prepre == 0 and (c_gate != 'C' or restricted == 0):
         parent_node = valid[p_index]
     # elif c_gate == 'W' or nextnext != 0 or prepre != 0 or (c_gate == 'C' and restricted) or (
             # restricted and placed_preds != [] and placed_preds[0] == 'C'):
-    elif c_gate == 'W' or nextnext != 0 or prepre != 0 or (c_gate == 'C'): #three cases: fill wire and fill the nextnext
+    elif c_gate == 'W' or nextnext != 0 or prepre != 0 or (c_gate == 'C' and restricted): #three cases: fill wire and fill the nextnext
         parent_node = list(range(len(shape[p_index])))
     if c_gate == 'C' and next in only_right:  # check if only right
         right = 1
