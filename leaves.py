@@ -3,8 +3,8 @@ import random
 import numpy as np
 
 input_shape = 10
-longest = 100
-final_keep = 10
+longest = 80
+final_keep = 8
 def place_leaves(table, shapes, first, last, rows):
     for i in range(len(first)):
         if first[i] < 0:
