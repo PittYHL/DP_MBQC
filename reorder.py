@@ -9,9 +9,9 @@ import copy
 from dense import *
 def biuld_DAG(gates):
     DAG_list = gates.copy()
-qubits = 27
-rows = 80
-flip = False
+qubits = 15
+rows = 45
+flip = True
 # force_right = False#force the second c to the right
 # special = 0#for special leaves
 wire_remove = 1
@@ -28,7 +28,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/bv27b.txt') as f:
+with open('Benchmarks/qft15.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
