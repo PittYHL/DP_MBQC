@@ -1,4 +1,6 @@
 import copy
+import random
+
 import networkx as nx
 from matplotlib import pyplot as plt
 from placement import *
@@ -9,9 +11,10 @@ from last_step import *
 from iterations import keep_placing
 
 keep = 10
+final_keep = 5 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
-def DP(ori_map, qubits, rows, flip):
+def DP(ori_map, qubits, rows, flip, first_loc):
     new_map = []
     for row in ori_map:
         new_map.append([])
@@ -26,14 +29,14 @@ def DP(ori_map, qubits, rows, flip):
 
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc)
     print("finish placing core")
-    print("number of core: ", len(shapes))
     middle_shapes = shapes[-1]
-    final_shapes = place_leaves(table, shapes, first, last, rows)
-    final_shapes = sort_final_shapes(final_shapes)
-    valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    valid_table, valid_shapes = pick_shapes(table, shapes)
+    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows)
+    final_shapes, min_depth = sort_final_shapes(final_shapes)
+    # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
-    print("Optimized depth: ", len(final_shapes[0][0]))
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map)
+    print("Optimized depth: ", min_depth)
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')
@@ -1127,16 +1130,51 @@ def check_valid_start_end(start, end):
 def sort_final_shapes(final_shapes):
     max_width = 0
     min_depth = 1000000
+    depths = []
+    widths = []
+    spaces = []
     for shape in final_shapes:
-        if len(shape) > max_width:
-            max_width = len(shape)
-        if len(shape[0]) < min_depth:
-            min_depth = len(shape[0])
-    final_final_shapes = []
-    for shape in final_shapes:
-        if len(shape) == max_width and len(shape[0]) == min_depth:
-            final_final_shapes.append(shape)
-    return final_final_shapes
+        depths.append(len(shape[0]))
+        widths.append(len(shape))
+        _, space = fill_shape(shape)
+        spaces.append(space)
+    min_depth = min(depths)
+    valid_shapes = []
+    num_width = list(set(widths))
+    num_width.sort()
+    indexes = []
+    for i in range(len(num_width)):
+        temp_depth = []
+        temp_space = []
+        chosen = []
+        for j in range(len(widths)):
+            if num_width[i] == widths[j]:
+                temp_depth.append(depths[j])
+                temp_space.append(spaces[j])
+                chosen.append(j)
+        min_depth = min(temp_depth)
+        min_depth_spaces = []
+        next_chosen = []
+        for j in range(len(temp_depth)):
+            if temp_depth[j] == min_depth:
+                min_depth_spaces.append(temp_space[j])
+                next_chosen.append(chosen[j])
+        indexes.append(next_chosen[min_depth_spaces.index(min(min_depth_spaces))])
+    remove_list = []
+    # remove the width with the same depth, but wider
+    for i in range(1, len(indexes)):
+        if depths[indexes[i - 1]] <= depths[indexes[i]]:
+            remove_list.append(i)
+    remove_list.sort(reverse=True)
+    for i in remove_list:
+        indexes.pop(i)
+    while len(indexes) > final_keep:
+        remove = random.randint(1, len(indexes) - 2)
+        indexes.pop(remove)
+    for i in indexes:
+        valid_shapes.append(final_shapes[i])
+
+    return valid_shapes, min_depth
 
 def sort_new_shapes(table, shapes, final_shapes):
     valid_table = []
@@ -1149,4 +1187,51 @@ def sort_new_shapes(table, shapes, final_shapes):
         if len(shapes[i]) == len(final_shapes[0]) and len(shapes[i][0]) == shortest_depth:
             valid_table.append(table[i])
             valid_shapes.append(shapes[i])
+    return valid_table, valid_shapes
+
+def pick_shapes(table, shapes):
+    widths = []
+    depths = []
+    spaces = []
+    valid_table = []
+    valid_shapes = []
+    for i in range(len(table)):
+        widths.append(table[i]['row'])
+        depths.append(table[i]['D'])
+        spaces.append(table[i]['S'])
+    #for each widh pick the best
+    num_width = list(set(widths))
+    num_width.sort()
+    indexes = []
+    for i in range(len(num_width)):
+        temp_depth = []
+        temp_space = []
+        chosen = []
+        for j in range(len(widths)):
+            if num_width[i] == widths[j]:
+                temp_depth.append(depths[j])
+                temp_space.append(spaces[j])
+                chosen.append(j)
+        min_depth = min(temp_depth)
+        min_depth_spaces = []
+        next_chosen = []
+        for j in range(len(temp_depth)):
+            if temp_depth[j] == min_depth:
+                min_depth_spaces.append(temp_space[j])
+                next_chosen.append(chosen[j])
+        indexes.append(next_chosen[min_depth_spaces.index(min(min_depth_spaces))])
+    remove_list = []
+    #remove the width with the same depth, but wider
+    for i in range(1, len(indexes)):
+        if depths[indexes[i - 1]] <= depths[indexes[i]]:
+            remove_list.append(i)
+    remove_list.sort(reverse=True)
+    for i in remove_list:
+        indexes.pop(i)
+    while len(indexes) > final_keep:
+        remove = random.randint(1, len(indexes) - 2)
+        indexes.pop(remove)
+    for i in indexes:
+        valid_table.append(table[i])
+        valid_shapes.append(shapes[i])
     return valid_table, valid_shapes

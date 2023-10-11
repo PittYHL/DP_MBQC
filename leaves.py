@@ -9,15 +9,15 @@ def place_leaves(table, shapes, first, last, rows):
     for i in range(len(first)):
         if first[i] < 0:
             first[i] = abs(first[i])
-    last_table = table
-    last_shapes = shapes
+    short_table = table
+    short_shapes = shapes
     final_shapes = []
     max_first = max(first)
     all_length = first + last
     available_length = list(set(all_length))
     available_length.sort()
     all_leaves, all_paths = generate_leaves(available_length) #generate leaves of all the length
-    short_table, short_shapes = sort_shapes(last_table, last_shapes)
+    #short_table, short_shapes = sort_shapes(last_table, last_shapes)
     front_leaves = [[] for _ in range(len(short_table))]
     front_locs = [[] for _ in range(len(short_table))]
     back_leaves = [[] for _ in range(len(short_table))]
@@ -32,7 +32,7 @@ def place_leaves(table, shapes, first, last, rows):
         ends = copy.deepcopy(short_table[i]['ends'])
         shape = short_shapes[i]
         depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i], final_shapes = \
-            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes)
+            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows)
     return final_shapes
 
 def generate_leaves(available_length):
@@ -241,7 +241,7 @@ def sort_shapes(last_table, last_shapes): #current version only allows maximum w
         min_dep = min_dep + 1
     return valid_table, valid_shapes
 
-def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes):
+def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
     front_locs = [[] for _ in range(len(starts) + 1)]
@@ -250,14 +250,30 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     back_locs = [[] for _ in range(len(starts) + 1)]
     start_rank, _, _ = rank_starts(starts, shape)
     end_rank, _, _ = rank_ends(ends, shape)
+    if rows > len(shape):
+        extra_row = rows - len(shape)
+    up_rows = 0 #number of extra rows that upper the shape
+    down_rows = 0
+    while extra_row != 0:
+        if extra_row % 2 ==0:
+            up_rows = up_rows + 1
+        else:
+            down_rows = down_rows + 1
+        extra_row = extra_row - 1
     for i in range(len(starts)):
         starts[i][1] = starts[i][1] + max_first #change the x locs
         ends[i][1] = ends[i][1] + max_first
+        starts[i][0] = starts[i][0] + up_rows  # change the y locs
+        ends[i][0] = ends[i][0] + up_rows
     # starts.sort(reverse=True, key=lambda x: x[1])
     # ends.sort(key=lambda x: x[1])
     original_shape = copy.deepcopy(shape)
     for i in range(len(original_shape)):
         original_shape[i] = [0] * max_first + original_shape[i] + [0] * max(last)
+    for i in range(up_rows):
+        original_shape.insert(0, [0] * len(original_shape[0]))
+    for i in range(down_rows):
+        original_shape.append([0] * len(original_shape[0]))
     front_shapes[0].append(copy.deepcopy(original_shape))
     front_leaves[0].append([])
     front_locs[0].append([])
@@ -639,6 +655,18 @@ def fill_final(original_shape, all_paths, front_leave, front_loc,
     return new_shape, count_depth(new_shape)
 
 def remove_empty(shape):
+    empty_row = []
+    for i in range(len(shape)):
+        empty = 1
+        for j in range(len(shape[i])):
+            if shape[i][j] != 0:
+                empty = 0
+                break
+        if empty:
+            empty_row.append(i)
+    empty_row.sort(reverse=True)
+    for i in empty_row:
+        shape.pop(i)
     max_zeros = 100000
     original_len = len(shape[0])
     for row in shape:

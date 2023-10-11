@@ -9,9 +9,10 @@ import copy
 from dense import *
 def biuld_DAG(gates):
     DAG_list = gates.copy()
-qubits = 15
-rows = 45
+qubits = 5
+rows = 16
 flip = True
+first_loc = 'd'
 # force_right = False#force the second c to the right
 # special = 0#for special leaves
 wire_remove = 1
@@ -28,7 +29,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qft15.txt') as f:
+with open('Benchmarks/qft5.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -254,7 +255,7 @@ if wire_remove:
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
 # np.savetxt("example/iqp27el_111.csv", n_map, fmt = '%s',delimiter=",")
-DP(new_map, qubits, rows, flip)
+DP(new_map, qubits, rows, flip, first_loc)
 # n_map = np.array(new_map)
 # np.savetxt("example/bv4el.csv", n_map, fmt = '%s',delimiter=",")
 # new_map = new_eliminate_redundant(map, qubits)
