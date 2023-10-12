@@ -4,7 +4,7 @@ import numpy as np
 from leaves import *
 from placement import *
 from last_step import double_shape
-round = 2
+round = 4
 keep = 30
 longest = 30
 final_keep = 6 #for after placing back and kept
@@ -160,6 +160,8 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     f.write('\n')
     f.write("Average shape " + str(average))
     f.close()
+    print("Original depth " + str(ori_depth))
+    print("best depth " + str(shortest_depth))
     print("Optimized", round + 1, " iterations depth: ", final_depth[-1][0])
     print("Individual widths are", final_single_depth[-1][0])
     print("Optimized reduction", optimized_reduction)

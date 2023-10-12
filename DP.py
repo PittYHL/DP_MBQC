@@ -1138,7 +1138,7 @@ def sort_final_shapes(final_shapes):
         widths.append(len(shape))
         _, space = fill_shape(shape)
         spaces.append(space)
-    min_depth = min(depths)
+    real_min_depth = min(depths)
     valid_shapes = []
     num_width = list(set(widths))
     num_width.sort()
@@ -1174,7 +1174,7 @@ def sort_final_shapes(final_shapes):
     for i in indexes:
         valid_shapes.append(final_shapes[i])
 
-    return valid_shapes, min_depth
+    return valid_shapes, real_min_depth
 
 def sort_new_shapes(table, shapes, final_shapes):
     valid_table = []

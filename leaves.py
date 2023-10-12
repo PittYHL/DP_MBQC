@@ -570,7 +570,12 @@ def remove_short_end(shapes, leaves, locs, depth_list, longest = longest):
         for i in range(len(depth_list)):
             if depth_list[i] == max_depth:
                 max_list.append(i)
-        for i in reversed(max_list):
+        if len(shapes) - longest >= len(max_list):
+            chosen = max_list
+        else:
+            chosen = random.sample(max_list, len(depth_list) - longest)
+        chosen.sort()
+        for i in reversed(chosen):
             shapes.pop(i)
             leaves.pop(i)
             locs.pop(i)
