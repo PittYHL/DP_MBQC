@@ -14,7 +14,7 @@ keep = 10
 final_keep = 5 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
-def DP(ori_map, qubits, rows, flip, first_loc):
+def DP(ori_map, qubits, rows, flip, first_loc, file_name):
     new_map = []
     for row in ori_map:
         new_map.append([])
@@ -36,7 +36,7 @@ def DP(ori_map, qubits, rows, flip, first_loc):
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc)
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')

@@ -250,6 +250,7 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     back_locs = [[] for _ in range(len(starts) + 1)]
     start_rank, _, _ = rank_starts(starts, shape)
     end_rank, _, _ = rank_ends(ends, shape)
+    extra_row = 0
     if rows > len(shape):
         extra_row = rows - len(shape)
     up_rows = 0 #number of extra rows that upper the shape

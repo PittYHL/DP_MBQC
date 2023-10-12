@@ -4,12 +4,12 @@ import numpy as np
 from leaves import *
 from placement import *
 from last_step import double_shape
-round = 2
+round = 5
 keep = 30
 longest = 30
 final_keep = 6 #for after placing back and kept
 
-def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map, first_loc):
+def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map, first_loc, ori_depth, shortest_depth, file_name):
     #show original depth
     ori_depth = len(new_map[0])
     double_shape, double_depth = check_combine_depth(new_map, new_map)
@@ -82,7 +82,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
                         upper = min(rows - len(shape), max(first[-1], last[-1]))
                     else:
                         upper = min(rows - len(shape), max(first[0], last[0]))
-                    print('upper ', upper)
+                    # print('upper ', upper)
                     for upper_row in range(upper + 1):
                         lower_row = rows - upper_row - len(shape)
                         starts = copy.deepcopy(short_table[j]['starts'])
@@ -103,7 +103,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
                         lower = min(rows - len(shape), max(first[0], last[0]))
                     else:
                         lower = min(rows - len(shape), max(first[-1], last[-1]))
-                    print('lower ', lower)
+                    # print('lower ', lower)
                     for lower_row in range(lower + 1):
                         upper_row = rows - lower_row - len(shape)
                         starts = copy.deepcopy(short_table[j]['starts'])
@@ -145,9 +145,25 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         final_depth[r + 1] = temp_depths
         final_space[r + 1] = temp_spaces
         final_single_depth[r + 1] = temp_single_depth
+    optimized_reduction = (sum(final_single_depth[-1][0]) - final_depth[-1][0]) / round
+    average = sum(final_single_depth[-1][0]) / (round + 1)
+    f = open(file_name, "w")
+    f.write("Original depth " + str(ori_depth))
+    f.write('\n')
+    f.write("best depth " + str(shortest_depth))
+    f.write('\n')
+    f.write("Optimized " + str(round + 1) + " iterations depth: " + str(final_depth[-1][0]))
+    f.write('\n')
+    f.write("Individual widths are " + str(final_single_depth[-1][0]))
+    f.write('\n')
+    f.write("Optimized reduction " + str(optimized_reduction))
+    f.write('\n')
+    f.write("Average shape " + str(average))
+    f.close()
     print("Optimized", round + 1, " iterations depth: ", final_depth[-1][0])
-    optimized_reduction = ((round + 1) * len(input_shapes[0][0]) - final_depth[-1][0]) / round
+    print("Individual widths are", final_single_depth[-1][0])
     print("Optimized reduction", optimized_reduction)
+    print("Average shape", average)
 
 
 def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leaves, previous_shape, flip, up_rows, down_rows):
@@ -198,7 +214,7 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
                         shortest = depth
         if len(front_shapes[i + 1]) == 0:
             print('front fail')
-            return [], [], []
+            return [], [], [], []
         front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = fit_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1],
                                                                                                 depth_list, previous_shape, flip)
     if len(depth_list) > 1:
@@ -235,7 +251,7 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
                                                                                                     depth_list, longest)
         if len(back_shapes[i + 1]) == 0:
             print('back fail')
-            return [], [], []
+            return [], [], [], []
     if len(depth_list) > final_keep:
         back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, space_list = \
             remove_short_end_space(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, final_keep)
@@ -465,6 +481,20 @@ def fill_previous(previous_shape, rows, first_loc):
     elif first_loc == 'u':
         extra_row = rows - len(previous_shape)
         for i in range(extra_row):
+            previous_shape.append([0]*len(previous_shape[0]))
+    else:
+        extra_row = rows - len(previous_shape)
+        up_rows = 0
+        down_rows = 0
+        while extra_row != 0:
+            if extra_row % 2 == 0:
+                up_rows = up_rows + 1
+            else:
+                down_rows = down_rows + 1
+            extra_row = extra_row - 1
+        for i in range(up_rows):
+            previous_shape.insert(0, [0] * len(previous_shape[0]))
+        for i in range(down_rows):
             previous_shape.append([0]*len(previous_shape[0]))
     return previous_shape
 

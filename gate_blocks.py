@@ -31,43 +31,42 @@ DCNOT2 = [ ['X','Y','Y','Y'],
 
 def de_gate(gate):
     X = gate.split()
-    match X[0]:
-        case 'H':
-            return H, int(X[1]), int(X[1]), int(X[1]), 'H'
-        case 'P':
-            return P, int(X[1]), int(X[1]), int(X[1]), 'P'
-        case 'S':
-            return S, int(X[1]), int(X[1]), int(X[1]), 'S'
-        case 'Z':
-            return Z, int(X[1]), int(X[1]), int(X[1]), 'Z'
-        case 'T':
-            return T, int(X[1]), int(X[1]), int(X[1]), 'T'
-        case 'X':
-            return X, int(X[1]), int(X[1]), int(X[1]), 'X'
-        case 'RX':
-            return RX, int(X[1]), int(X[1]), int(X[1]), 'RX'
-        case 'RZ':
-            return RZ, int(X[1]), int(X[1]), int(X[1]), 'RZ'
-        case 'A':
-            return A, int(X[1]), int(X[1]), int(X[1]), 'A'
-        case 'CNOT':
-            return CNOT, int(X[1]), int(X[2]), int(X[2]), 'CNOT'
-        case 'CZ':
-            return CZS, int(X[1]), int(X[2]), int(X[2]), 'CZ'
-        case 'CP':
-            return CPS, int(X[1]), int(X[2]), int(X[2]), 'CP'
-        case 'DCN1':
-            return DCNOT1, int(X[1]), int(X[2]), int(X[3]), 'DCN1'
-        case 'DCN2':
-            return DCNOT2, int(X[1]), int(X[2]), int(X[3]), 'DCN2'
-        case 'SW':
-            return SW, int(X[1]), int(X[1]), int(X[2]), 'SW'
-        case 'I1':
-            return I1, int(X[1]), int(X[1]), int(X[1]), 'I1'
-        case 'I2':
-            return I2, int(X[1]), int(X[1]), int(X[1]), 'I2'
-        case 'I3':
-            return I3, int(X[1]), int(X[1]), int(X[1]), 'I3'
+    if X[0] == 'H':
+        return H, int(X[1]), int(X[1]), int(X[1]), 'H'
+    elif X[0] == 'P':
+        return P, int(X[1]), int(X[1]), int(X[1]), 'P'
+    elif X[0] == 'S':
+        return S, int(X[1]), int(X[1]), int(X[1]), 'S'
+    elif X[0] == 'Z':
+        return Z, int(X[1]), int(X[1]), int(X[1]), 'Z'
+    elif X[0] == 'T':
+        return T, int(X[1]), int(X[1]), int(X[1]), 'T'
+    elif X[0] == 'X':
+        return X, int(X[1]), int(X[1]), int(X[1]), 'X'
+    elif X[0] == 'RX':
+        return RX, int(X[1]), int(X[1]), int(X[1]), 'RX'
+    elif X[0] == 'RZ':
+        return RZ, int(X[1]), int(X[1]), int(X[1]), 'RZ'
+    elif X[0] == 'A':
+        return A, int(X[1]), int(X[1]), int(X[1]), 'A'
+    elif X[0] == 'CNOT':
+        return CNOT, int(X[1]), int(X[2]), int(X[2]), 'CNOT'
+    elif X[0] == 'CZ':
+        return CZS, int(X[1]), int(X[2]), int(X[2]), 'CZ'
+    elif X[0] == 'CP':
+        return CPS, int(X[1]), int(X[2]), int(X[2]), 'CP'
+    elif X[0] == 'DCN1':
+        return DCNOT1, int(X[1]), int(X[2]), int(X[3]), 'DCN1'
+    elif X[0] == 'DCN2':
+        return DCNOT2, int(X[1]), int(X[2]), int(X[3]), 'DCN2'
+    elif X[0] == 'SW':
+        return SW, int(X[1]), int(X[1]), int(X[2]), 'SW'
+    elif X[0] == 'I1':
+        return I1, int(X[1]), int(X[1]), int(X[1]), 'I1'
+    elif X[0] == 'I2':
+        return I2, int(X[1]), int(X[1]), int(X[1]), 'I2'
+    elif X[0] == 'I3':
+        return I3, int(X[1]), int(X[1]), int(X[1]), 'I3'
 def swap(map, t3, t4, tracker, dir, physical_gate):
     qubits = int((len(map) + 1) / 2)
     while tracker[t4] - tracker[t3] > 2:
