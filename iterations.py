@@ -4,7 +4,7 @@ import numpy as np
 from leaves import *
 from placement import *
 from last_step import double_shape
-round = 5
+round = 2
 keep = 30
 longest = 30
 final_keep = 6 #for after placing back and kept
