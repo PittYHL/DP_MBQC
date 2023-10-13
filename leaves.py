@@ -5,7 +5,7 @@ import numpy as np
 input_shape = 10
 longest = 80
 final_keep = 8
-def place_leaves(table, shapes, first, last, rows):
+def place_leaves(table, shapes, first, last, rows, loc):
     for i in range(len(first)):
         if first[i] < 0:
             first[i] = abs(first[i])
@@ -32,7 +32,7 @@ def place_leaves(table, shapes, first, last, rows):
         ends = copy.deepcopy(short_table[i]['ends'])
         shape = short_shapes[i]
         depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i], final_shapes = \
-            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows)
+            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc)
     return final_shapes
 
 def generate_leaves(available_length):
@@ -241,7 +241,7 @@ def sort_shapes(last_table, last_shapes): #current version only allows maximum w
         min_dep = min_dep + 1
     return valid_table, valid_shapes
 
-def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows):
+def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
     front_locs = [[] for _ in range(len(starts) + 1)]
@@ -255,12 +255,15 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
         extra_row = rows - len(shape)
     up_rows = 0 #number of extra rows that upper the shape
     down_rows = 0
-    while extra_row != 0:
-        if extra_row % 2 ==0:
-            up_rows = up_rows + 1
-        else:
-            down_rows = down_rows + 1
-        extra_row = extra_row - 1
+    if loc == 'd':
+        up_rows = extra_row
+    else:
+        while extra_row != 0:
+            if extra_row % 2 ==0:
+                up_rows = up_rows + 1
+            else:
+                down_rows = down_rows + 1
+            extra_row = extra_row - 1
     for i in range(len(starts)):
         starts[i][1] = starts[i][1] + max_first #change the x locs
         ends[i][1] = ends[i][1] + max_first

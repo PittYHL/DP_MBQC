@@ -147,6 +147,12 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         final_single_depth[r + 1] = temp_single_depth
     optimized_reduction = (sum(final_single_depth[-1][0]) - final_depth[-1][0]) / round
     average = sum(final_single_depth[-1][0]) / (round + 1)
+    print("Original depth " + str(ori_depth))
+    print("best depth " + str(shortest_depth))
+    print("Optimized", round + 1, " iterations depth: ", final_depth[-1][0])
+    print("Individual widths are", final_single_depth[-1][0])
+    print("Optimized reduction", optimized_reduction)
+    print("Average shape", average)
     f = open(file_name, "w")
     f.write("Original depth " + str(ori_depth))
     f.write('\n')
@@ -160,12 +166,6 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     f.write('\n')
     f.write("Average shape " + str(average))
     f.close()
-    print("Original depth " + str(ori_depth))
-    print("best depth " + str(shortest_depth))
-    print("Optimized", round + 1, " iterations depth: ", final_depth[-1][0])
-    print("Individual widths are", final_single_depth[-1][0])
-    print("Optimized reduction", optimized_reduction)
-    print("Average shape", average)
 
 
 def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leaves, previous_shape, flip, up_rows, down_rows):

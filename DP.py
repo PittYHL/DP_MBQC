@@ -31,7 +31,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name):
     print("finish placing core")
     middle_shapes = shapes[-1]
     valid_table, valid_shapes = pick_shapes(table, shapes)
-    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows)
+    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc)
     final_shapes, min_depth = sort_final_shapes(final_shapes)
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
