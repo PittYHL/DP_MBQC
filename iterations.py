@@ -357,7 +357,7 @@ def check_combine_depth(ori_shape, next_shape):
             for i in range(len(new_shape)):
                 if i == 0 and (
                         new_shape[i][back_locs[i] + 1] != 0 or (new_shape[i + 1][back_locs[i]] != 0 and
-                                                                ori_shape[i + 1][back_locs[i]] == 0)):
+                                                                temp_shape[i + 1][back_locs[i]] == 0)):
                     found_reduc = 0
                     break
                 elif i == len(new_shape) - 1 and (new_shape[i][back_locs[i] + 1] != 0 or
