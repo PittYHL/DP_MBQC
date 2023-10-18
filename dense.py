@@ -834,3 +834,88 @@ def move_R2(new_map):
                 new_map[i][j + length:j + length+2] = ['Y','Y']
                 new_map[i][j: j + 2] = ['X', 'X']
     return new_map
+
+def remove_leaves_wire(qubits, new_map):
+    for i in range(qubits):
+        current_row = i * 2
+        if current_row == 0:
+            for j in range(len(new_map[0])):
+                if new_map[current_row + 1][j] != 'Z':
+                    front_loc = j
+                    break
+            for j in reversed(range(len(new_map[0]))):
+                if new_map[current_row + 1][j] != 'Z':
+                    back_loc = j
+                    break
+        elif current_row == len(new_map) - 1:
+            for j in range(len(new_map[0])):
+                if new_map[current_row - 1][j] != 'Z':
+                    front_loc = j
+                    break
+            for j in reversed(range(len(new_map[0]))):
+                if new_map[current_row - 1][j] != 'Z':
+                    back_loc = j
+                    break
+        else:
+            for j in range(len(new_map[0])):
+                if new_map[current_row + 1][j] != 'Z':
+                    front_loc1 = j
+                    break
+            for j in range(len(new_map[0])):
+                if new_map[current_row - 1][j] != 'Z':
+                    front_loc2 = j
+                    break
+            front_loc = min(front_loc1, front_loc2)
+            for j in reversed(range(len(new_map[0]))):
+                if new_map[current_row + 1][j] != 'Z':
+                    back_loc1 = j
+                    break
+            for j in reversed(range(len(new_map[0]))):
+                if new_map[current_row - 1][j] != 'Z':
+                    back_loc2 = j
+                    break
+            back_loc = max(back_loc1, back_loc2)
+        front_wire_locs = []
+        j = 0
+        while(j <= front_loc):
+            if new_map[current_row][j] == new_map[current_row][j + 1] == 'X':
+                front_wire_locs.append(j)
+                j = j + 2
+            else:
+                j = j + 1
+        j = len(new_map[0]) - 1
+        back_wire_locs = []
+        while (j >= back_loc):
+            if new_map[current_row][j] == new_map[current_row][j - 1] == 'X':
+                back_wire_locs.append(j - 1)
+                j = j - 2
+            else:
+                j = j - 1
+        front_wire_locs.sort(reverse=True)
+        back_wire_locs.sort(reverse=True)
+        for wire in front_wire_locs:
+            new_map[current_row].pop(wire)
+            new_map[current_row].pop(wire)
+            new_map[current_row].insert(0, 'Z')
+            new_map[current_row].insert(0, 'Z')
+        for wire in back_wire_locs:
+            new_map[current_row].pop(wire)
+            new_map[current_row].pop(wire)
+            new_map[current_row].append('Z')
+            new_map[current_row].append('Z')
+    front_z = 10000000
+    back_z = 10000000
+    for i in range(len(new_map)):
+        for j in range(len(new_map[i])):
+            if new_map[i][j] != 'Z':
+                front_z = min(front_z, j)
+    for i in range(len(new_map)):
+        for j in reversed(range(len(new_map[i]))):
+            if new_map[i][j] != 'Z':
+                back_z = min(back_z, len(new_map[i]) - j - 1)
+    for i in range(len(new_map)):
+        for j in range(front_z):
+            new_map[i].pop(0)
+        for j in range(back_z):
+            new_map[i].pop(-1)
+    print('g')

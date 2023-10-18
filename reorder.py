@@ -7,13 +7,15 @@ from new_swap import *
 from DP import *
 import copy
 from dense import *
+import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
-qubits = 15
-rows = 45
-flip = True
-first_loc = 'd'
-file_name = "results/qft15_d_(45).txt"
+keep = 2
+qubits = 5
+rows = 12
+flip = False
+first_loc = 'm'
+file_name = "results/bv5_m_(12).txt"
 # force_right = False#force the second c to the right
 # special = 0#for special leaves
 wire_remove = 1
@@ -30,7 +32,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qft15.txt') as f:
+with open('Benchmarks/bv5b.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -248,43 +250,15 @@ de_map = np.array(dense_map)
 
 # if wire_remove:
 #     new_map = remove_wire(dense_map, qubits, remove_single, remove_y)
-
+#     remove_leaves_wire(qubits, new_map)
 new_map = new_eliminate_redundant(dense_map, qubits)
 if wire_remove:
     new_map = remove_wire(new_map, qubits, remove_single, remove_y)
     new_map = new_eliminate_redundant(new_map, qubits)
-newnew_map = convert_new_map(new_map)
-n_map = np.array(newnew_map)
-# np.savetxt("example/iqp27el_111.csv", n_map, fmt = '%s',delimiter=",")
-DP(new_map, qubits, rows, flip, first_loc, file_name)
+# newnew_map = convert_new_map(new_map)
 # n_map = np.array(new_map)
-# np.savetxt("example/bv4el.csv", n_map, fmt = '%s',delimiter=",")
-# new_map = new_eliminate_redundant(map, qubits)
-# redun2 = cal_utilization(map, qubits)
-# useful2 = len(map) * len(map[0]) - redun2
-# old_uti0 = useful2/(len(dense_map[0])*rows)
-# old_uti1 = useful2/(len(new_map[0])*rows)
-# #old_uti2 = useful2/(len(ela_no[0])*rows)
-# #old_uti3 = useful2/(len(sche_ela[0])*rows)
-# uti0, use0 = cal_utilization2(dense_map, rows)
-# uti1, use1 = cal_utilization2(new_map, rows)
-# uti1 = use0 / (len(new_map[0])*rows)
-# uti2 = use1 / (len(new_map[0])*rows)
-#uti3 = use0 / (len(sche_ela[0])*rows)
-#np.savetxt("result/iqp7_base.csv", np_map, fmt = '%s',delimiter=",")
-#np.savetxt("result/iqp7_base_el.csv", np_new_map, fmt = '%s',delimiter=",")
-#np_map.tofile('hlf4_base.csv', sep = ',')
-# print(str(len(dense_map[0])))
-# print(str(uti0))
-# #print(str(len(schedule[0])))
-# #print(str(uti1))
-# #print(num_photons(schedule))
-# print(str(len(schedule[0])))
-# print(str(uti1))
-# print(str(len(ela_no[0])))
-# print(str(uti2))
-# print(str(len(sche_ela[0])))
-# print(str(uti3))
-# print(num_photons(dense_map))
-# print(use0)
-#print(num_photons(map))
+# np.savetxt("example/hlf27el.csv", n_map, fmt = '%s',delimiter=",")
+# file = open("example/hlf27el.csv", "r")
+# new_map = list(csv.reader(file, delimiter=","))
+# file.close()
+DP(new_map, qubits, rows, flip, first_loc, file_name, keep)

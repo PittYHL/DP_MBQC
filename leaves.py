@@ -1,11 +1,11 @@
 import copy
 import random
 import numpy as np
-
+from placement import *
 input_shape = 10
 longest = 80
 final_keep = 8
-def place_leaves(table, shapes, first, last, rows, loc):
+def place_leaves(table, shapes, first, last, rows, loc, keep):
     for i in range(len(first)):
         if first[i] < 0:
             first[i] = abs(first[i])
@@ -16,7 +16,7 @@ def place_leaves(table, shapes, first, last, rows, loc):
     all_length = first + last
     available_length = list(set(all_length))
     available_length.sort()
-    all_leaves, all_paths = generate_leaves(available_length) #generate leaves of all the length
+    all_leaves, all_paths, leaves_width, leaves_space, leaves_depth = generate_leaves(available_length) #generate leaves of all the length
     #short_table, short_shapes = sort_shapes(last_table, last_shapes)
     front_leaves = [[] for _ in range(len(short_table))]
     front_locs = [[] for _ in range(len(short_table))]
@@ -32,13 +32,16 @@ def place_leaves(table, shapes, first, last, rows, loc):
         ends = copy.deepcopy(short_table[i]['ends'])
         shape = short_shapes[i]
         depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i], final_shapes = \
-            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc)
+            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc, leaves_width, leaves_space, leaves_depth, keep)
     return final_shapes
 
 def generate_leaves(available_length):
     max_length = max(available_length)
     leaves = [[] for _ in range(max_length)]
     paths = [[] for _ in range(max_length)]
+    widths = [[] for _ in range(max_length)]
+    spaces = [[] for _ in range(max_length)]
+    depths = [[] for _ in range(max_length)]
     leaves[0] = [[1]]
     paths[0] = [[0,0]]
     queue = [[[1]]]
@@ -62,7 +65,13 @@ def generate_leaves(available_length):
                 paths[length].append(new_paths[j])
     leaves[0] = [[[1]]]
     paths[0] = [[[0, 0]]]
-    return leaves, paths
+    for i in range(len(leaves)):
+        for j in range(len(leaves[i])):
+            widths[i].append(len(leaves[i][j]))
+            _, space = fill_shape(leaves[i][j])
+            spaces[i].append(space)
+            depths[i].append(len(leaves[i][j][0]))
+    return leaves, paths, widths, spaces, depths
 
 def generate_next(next, loc, path):
     new_leaves = []
@@ -241,7 +250,8 @@ def sort_shapes(last_table, last_shapes): #current version only allows maximum w
         min_dep = min_dep + 1
     return valid_table, valid_shapes
 
-def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc):
+def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows,
+                      loc, leaves_width, leaves_space, leaves_depth, keep):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
     front_locs = [[] for _ in range(len(starts) + 1)]
@@ -287,8 +297,10 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
         start_index = start_rank[i]
         for j in range(len(front_shapes[i])):
             available_locs, available_dirs = check_start(front_shapes[i][j], starts[start_index])
+            paths = rank_paths(leaves_width[first[start_index] - 1], leaves_space[first[start_index] - 1], leaves_depth[first[start_index] - 1],
+                               all_paths[first[start_index] - 1], keep)
             for k in range(len(available_locs)):
-                new_shapes, new_leaves = place_leaf_front(front_shapes[i][j], front_leaves[i][j], available_locs[k], all_paths[first[start_index] - 1])
+                new_shapes, new_leaves = place_leaf_front(front_shapes[i][j], front_leaves[i][j], available_locs[k], paths)
                 front_leaves[i + 1] = front_leaves[i + 1] + new_leaves
                 for l in range(len(new_shapes)):
                     new_locs = copy.deepcopy(front_locs[i][j])
@@ -908,3 +920,68 @@ def shuffle_locs(start_rank, front_leaves, front_locs, end_rank, back_leaves, ba
         new_back_leaves.append(new_leaf)
         new_back_locs.append(new_locs)
     return new_front_leaves, new_front_locs, new_back_leaves, new_back_locs
+
+def rank_paths(leaves_width, leaves_space, leaves_depth, all_paths, keep):
+    valid = check_valid(leaves_width, leaves_depth, leaves_space, keep)
+    paths = []
+    for i in valid:
+        paths.append(all_paths[i])
+    return paths
+
+
+def check_valid(rows, depths, spaces, keep):
+    row_collect = copy.deepcopy(rows)
+    row_collect = list(set(row_collect))
+    row_collect.sort() #row collection
+    row_index = [] #indexes of rows
+    valid = []
+    min_dep = min(depths)
+    row_collect_num = [[] for _ in range(len(row_collect))]
+    for i in range(len(rows)):
+        index = row_collect.index(rows[i])
+        row_index.append(index)
+        row_collect_num[index].append(i)
+    for i in range(len(row_collect_num)):
+        # if row_collect[i] == row_limit:
+        #     keep_more = 2 * keep
+        keep_more = keep
+        if len(row_collect_num[i]) > keep_more:
+            c_depths = []
+            c_spaces = []
+            for j in row_collect_num[i]:
+                c_depths.append(depths[j])
+                c_spaces.append(spaces[j])
+            valid = valid + rank_result(row_collect_num[i], c_depths, c_spaces, keep_more)
+        else:
+            valid = valid + row_collect_num[i]
+    valid.sort()
+    return valid
+
+def rank_result(row_collect_num, c_depths, c_spaces, keep_more):
+    temp_depth = copy.deepcopy(c_depths) #rank the depth
+    temp_depth = list(set(temp_depth))
+    temp_depth.sort()
+    selected = []
+    dep_group = [] #store the index of each depth
+    for dep in temp_depth:
+        temp_dep_group = []
+        c_dep_group = []
+        c_spaces_group = []
+        offset = 0.01
+        for i in range(len(c_depths)):
+            if c_depths[i] == dep:
+                c_dep_group.append(i)
+                if c_spaces[i] in c_spaces_group:
+                    c_spaces_group.append(c_spaces[i] + offset)
+                    offset = offset + 0.01
+                else:
+                    c_spaces_group.append(c_spaces[i])
+        temp_spaces_group = copy.deepcopy(c_spaces_group)
+        temp_spaces_group.sort(reverse=True)
+        for i in range(len(temp_spaces_group)):
+            temp_dep_group.append(c_dep_group[c_spaces_group.index(temp_spaces_group[i])])
+        dep_group = dep_group + temp_dep_group
+    while(len(selected)!=keep_more):
+        selected.append(row_collect_num[dep_group.pop(0)])
+    selected.sort()
+    return selected
