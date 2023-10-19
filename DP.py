@@ -27,13 +27,14 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep):
             else:
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map)
-
+    original_wire = sum(W_len)
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep)
     print("finish placing core")
     middle_shapes = shapes[-1]
     valid_table, valid_shapes = pick_shapes(table, shapes)
     final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep)
     final_shapes, min_depth = sort_final_shapes(final_shapes)
+    new_wire = count_wire(valid_shapes)
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
@@ -1235,3 +1236,14 @@ def pick_shapes(table, shapes):
         valid_table.append(table[i])
         valid_shapes.append(shapes[i])
     return valid_table, valid_shapes
+
+def count_wire(final_shapes):
+    wires = []
+    for shape in final_shapes:
+        count = 0
+        for i in range(len(shape)):
+            for j in range(len(shape[i])):
+                if shape[i][j] == 2:
+                    count = count + 1
+        wires.append(count)
+    return wires

@@ -12,7 +12,7 @@ def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
 qubits = 15
-rows = 37
+rows = 45
 flip = False
 first_loc = 'm'
 file_name = "results/vqe6_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
@@ -261,6 +261,6 @@ if wire_remove:
 # file = open("example/hlf27el.csv", "r")
 # new_map = list(csv.reader(file, delimiter=","))
 # file.close()
-for i in range(10, 20, 5):
+for i in range(10, 15, 5):
     file_name = "./results/hlf15_" + first_loc + "_" + str(rows) + "_" + str(i) + ".txt"
     DP(new_map, qubits, rows, flip, first_loc, file_name, i)
