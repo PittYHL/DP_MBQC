@@ -37,7 +37,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep):
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
-    # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name)
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')
@@ -96,7 +96,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep):
         placed.append(onle_one_pre[combination[0]][0])
         nodes_left.remove(onle_one_pre[combination[0]][0])
         temp_table, temp_shape, placed, nodes_left = combine(onle_one_pre[combination[0]][0], inde_table[combination[0] - 1], inde_shape[combination[0] - 1], inde_table[combination[1] - 1],
-                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph, qubits, placed, nodes_left)
+                                         inde_shape[combination[1] - 1], rows, nodes, inde_placed[combination[0] - 1], inde_placed[combination[1] - 1], graph, qubits, placed, nodes_left, keep)
         onle_one_pre[combination[0]] = []
         onle_one_pre[combination[1]] = []
         i = i + 1
@@ -842,7 +842,7 @@ def find_combine(onle_one_pre):
             if i != j and onle_one_pre[i] == onle_one_pre[j] and onle_one_pre[i] != []:
                 return [i, j]
 
-def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph, qubit_num, placed, nodes_left):
+def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1, graph, qubit_num, placed, nodes_left, keep):
     new_tables = []
     new_shapes = []
     c_gate = next.split('.')
@@ -919,7 +919,7 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
         new_shapes, front_collect, space_collect, new_sucessor, nextnext, parents, same_qubit, targets_collect, starts_collect, ends_collect = fill_nextnext(new_shapes, front_collect, space_collect, new_sucessor, nextnext, newnew_sucessors, parents,
             nodes, same_qubit, targets_collect, starts_collect, ends_collect)
         new_tables, rows_collect, depths_collect, qubit_collect = update_table(next, qubit_collect[0], new_shapes, front_collect, space_collect, new_sucessor, targets_collect, new_preds, starts_collect, ends_collect)
-    new_valid = check_valid(rows_collect, depths_collect, space_collect, rows, qubit_collect, qubit_num)
+    new_valid = check_valid(rows_collect, depths_collect, space_collect, rows, qubit_collect, qubit_num, keep)
     final_shapes = []
     final_tables = []
     for valid in new_valid:

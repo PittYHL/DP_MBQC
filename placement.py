@@ -751,7 +751,7 @@ def place_W(p_shape, base, rows, p_row, front, shapes, fronts, spaces, target, w
             if direc == 'u':
                 if tar_loc == []:
                     tar_loc = [target[0] + 1, target[1]]
-                if shape[base[0]][base[1] + 2] == 0: #check right start loc
+                if len(shape[base[0]]) <= base[1] + 3 and shape[base[0]][base[1] + 2] == 0: #check right start loc
                     start_loc = [base[0], base[1] + 1]
                     if special_greedy == 0:
                         shape, found = greedy_W(shape, base, start_loc, tar_loc, direc, 'b', w_len, 0)
@@ -774,7 +774,7 @@ def place_W(p_shape, base, rows, p_row, front, shapes, fronts, spaces, target, w
                         shape.append(row)
                 if tar_loc == []:  # cannot find target loc
                     return shapes, fronts, spaces, 0
-                if shape[base[0]][base[1] + 2] == 0: #check right start loc
+                if len(shape[base[0]]) <= base[1] + 3 and shape[base[0]][base[1] + 2] == 0: #check right start loc
                     start_loc = [base[0], base[1] + 1]
                     if special_greedy == 0:
                         shape, found = greedy_W(shape, base, start_loc, tar_loc, direc, 'b', w_len, 0)
@@ -806,7 +806,7 @@ def place_W(p_shape, base, rows, p_row, front, shapes, fronts, spaces, target, w
                             element[0] = element[0] + 1
                 if tar_loc == []: #cannot find target loc
                     return shapes, fronts, spaces, 0
-                if shape[base[0]][base[1] + 2] == 0: #check right start loc
+                if len(shape[base[0]]) <= base[1] + 3 and shape[base[0]][base[1] + 2] == 0: #check right start loc
                     start_loc = [base[0], base[1] + 1]
                     if special_greedy == 0:
                         shape, found = greedy_W(shape, base, start_loc, tar_loc, direc, 't', w_len, more_wire)
@@ -821,7 +821,7 @@ def place_W(p_shape, base, rows, p_row, front, shapes, fronts, spaces, target, w
             elif direc == 'd':
                 if tar_loc == []:
                     tar_loc = [target[0] - 1, target[1]]
-                if shape[base[0]][base[1] + 2] == 0: #check right start loc
+                if len(shape[base[0]]) <= base[1] + 3 and shape[base[0]][base[1] + 2] == 0: #check right start loc
                     start_loc = [base[0], base[1] + 1]
                     if special_greedy == 0:
                         shape, found = greedy_W(shape, base, start_loc, tar_loc, direc, 't', w_len, more_wire)
