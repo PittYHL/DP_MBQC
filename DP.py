@@ -38,7 +38,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep):
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep)
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')

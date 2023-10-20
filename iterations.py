@@ -9,7 +9,7 @@ keep = 30
 longest = 30
 final_keep = 6 #for after placing back and kept
 
-def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map, first_loc, ori_depth, shortest_depth, file_name, keep):
+def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map, first_loc, ori_depth, shortest_depth, file_name, keep, original_wire):
     #show original depth
     ori_depth = len(new_map[0])
     double_shape, double_depth = check_combine_depth(new_map, new_map)
@@ -150,6 +150,8 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         final_depth[r + 1] = temp_depths
         final_space[r + 1] = temp_spaces
         final_single_depth[r + 1] = temp_single_depth
+    final_wires = count_wire(final_shapes[-1])
+    average_wire = final_wires[0]/(round + 1)
     optimized_reduction = (sum(final_single_depth[-1][0]) - final_depth[-1][0]) / round
     average = sum(final_single_depth[-1][0]) / (round + 1)
     print("Original depth " + str(ori_depth))
@@ -160,6 +162,8 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     print("Average shape", average)
     print("Original 1000 " + str(ori_depth*1000 + 999))
     print("Optimized 1000 " + str(average * 1000 - optimized_reduction*999))
+    print("Original wire " + str(original_wire))
+    print("Final wire " + str(average_wire))
     f = open(file_name, "w")
     f.write("Original depth " + str(ori_depth))
     f.write('\n')
@@ -176,6 +180,10 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     f.write("Original 1000 " + str(ori_depth * 1000 + 999))
     f.write('\n')
     f.write("Optimized 1000 " + str(average * 1000 - optimized_reduction*999))
+    f.write('\n')
+    f.write("Original wire " + str(original_wire))
+    f.write('\n')
+    f.write("Final wire " + str(average_wire))
     f.close()
 
 
@@ -608,3 +616,14 @@ def fill_final2(original_shape, all_paths, front_leave, front_loc,
             new_shape[back_paths[j][0]][back_paths[j][1]] = 1
     new_shape = remove_empty2(new_shape)
     return new_shape, count_depth(new_shape)
+
+def count_wire(final_shapes):
+    wires = []
+    for shape in final_shapes:
+        count = 0
+        for i in range(len(shape)):
+            for j in range(len(shape[i])):
+                if shape[i][j] == 2:
+                    count = count + 1
+        wires.append(count)
+    return wires
