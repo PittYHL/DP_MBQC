@@ -17,13 +17,16 @@ long = 100
 restricted  = 0
 def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep):
     new_map = []
+    original_measurements = 0
     for row in ori_map:
         new_map.append([])
         for item in row:
             if item != 'Z' and item != 'X':
                 new_map[-1].append(1)
+                original_measurements = original_measurements + 1
             elif item == 'X':
                 new_map[-1].append(2)
+                original_measurements = original_measurements + 1
             else:
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map)
