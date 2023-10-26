@@ -11,10 +11,10 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 27
-rows = 53
-flip = False
-first_loc = 'm'
+qubits = 100
+rows = 300
+flip = True
+first_loc = 'd'
 file_name = "results/vqe14_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
 # force_right = False#force the second c to the right
 # special = 0#for special leaves
@@ -32,7 +32,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qft27.txt') as f:
+with open('Benchmarks/qft100.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -258,9 +258,9 @@ if wire_remove:
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
 # np.savetxt("example/hlf15el_111.csv", n_map, fmt = '%s',delimiter=",")
-file = open("example/hlf27el.csv", "r")
-new_map = list(csv.reader(file, delimiter=","))
-file.close()
-for i in range(2, 10):
-    file_name = "./results/hlf15_" + first_loc + "_" + str(rows) + "_" + str(i) + ".txt"
+# file = open("example/hlf27el.csv", "r")
+# new_map = list(csv.reader(file, delimiter=","))
+# file.close()
+for i in range(6, 7):
+    file_name = "./results/qft100_" + first_loc + "_" + str(rows) + "_" + str(i) + ".txt"
     DP(new_map, qubits, rows, flip, first_loc, file_name, i)

@@ -545,6 +545,8 @@ def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, vali
         'front': fronts[i], 'successor': successors, 'targets':wire_targets[i], 'preds': new_preds, 'starts':start, 'ends':end})
         shape[p_index + 1].append(shapes[i])
     invalid_list.sort(reverse=True)
+    table[p_index] = [] #limit the memory
+    shape[p_index] = []
     for index in invalid_list:
         rows.pop(index)
         depths.pop(index)

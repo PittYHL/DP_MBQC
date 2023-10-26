@@ -4,7 +4,7 @@ import numpy as np
 from leaves import *
 from placement import *
 from last_step import double_shape
-round = 4
+round = 3
 keep = 30
 longest = 30
 final_keep = 6 #for after placing back and kept
@@ -150,6 +150,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
         final_depth[r + 1] = temp_depths
         final_space[r + 1] = temp_spaces
         final_single_depth[r + 1] = temp_single_depth
+        final_shapes[r] = []
     final_wires = count_wire(final_shapes[-1])
     average_wire = final_wires[0]/(round + 1)
     optimized_reduction = (sum(final_single_depth[-1][0]) - final_depth[-1][0]) / round
