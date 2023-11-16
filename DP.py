@@ -15,7 +15,7 @@ from iterations import keep_placing
 final_keep = 5 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
-def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep):
+def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea):
     new_map = []
     original_measurements = 0
     for row in ori_map:
@@ -35,13 +35,13 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep):
     print("finish placing core")
     middle_shapes = shapes[-1]
     valid_table, valid_shapes = pick_shapes(table, shapes)
-    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep)
+    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
     final_shapes, min_depth = sort_final_shapes(final_shapes)
     new_wire = count_wire(valid_shapes)
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire)
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')

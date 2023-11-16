@@ -110,7 +110,7 @@ def gen_DAG(map, s_row):
         add = 1
         for j in range(len(s_row[i]) - 1):
             if s_row[i][j + 1] - s_row[i][j] > 1:
-                if map[i * 2][s_row[i][j] + 1] == 2 and s_row[i][j + 1] - s_row[i][j] > 3:
+                if map[i * 2][s_row[i][j] + 1] == 2 and map[i * 2][s_row[i][j] + 2] == 2 and s_row[i][j + 1] - s_row[i][j] > 3:
                     node = 'W.' + str(W)
                     W = W + 1
                     loc = node_loc[i].index(s_row[i][j])

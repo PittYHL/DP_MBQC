@@ -8,8 +8,7 @@ round = 3
 keep = 30
 longest = 30
 final_keep = 6 #for after placing back and kept
-
-def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map, first_loc, ori_depth, shortest_depth, file_name, keep, original_wire):
+def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map, first_loc, ori_depth, shortest_depth, file_name, keep, original_wire, hwea):
     #show original depth
     ori_depth = len(new_map[0])
     double_shape, double_depth = check_combine_depth(new_map, new_map)
@@ -89,10 +88,10 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
                         ends = copy.deepcopy(short_table[j]['ends'])
                         if flip:
                             shapes, depths, spaces, single_depths = place_next(shape, starts, ends, all_paths, max_first, first,
-                                last, all_leaves, previous_shape, flip, lower_row, upper_row, leaves_width, leaves_space, leaves_depth, keep)
+                                last, all_leaves, previous_shape, flip, lower_row, upper_row, leaves_width, leaves_space, leaves_depth, keep, hwea)
                         else:
                             shapes, depths, spaces, single_depths = place_next(shape, starts, ends, all_paths, max_first, first,
-                                last, all_leaves, previous_shape, flip, upper_row, lower_row, leaves_width, leaves_space, leaves_depth, keep)
+                                last, all_leaves, previous_shape, flip, upper_row, lower_row, leaves_width, leaves_space, leaves_depth, keep, hwea)
                         temp_shapes = temp_shapes + shapes
                         temp_depths = temp_depths + depths
                         temp_spaces = temp_spaces + spaces
@@ -112,10 +111,10 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
                         ends = copy.deepcopy(short_table[j]['ends'])
                         if flip:
                             shapes, depths, spaces, single_depths = place_next(shape, starts, ends, all_paths, max_first, first,
-                                last, all_leaves, previous_shape, flip, lower_row, upper_row, leaves_width, leaves_space, leaves_depth, keep)
+                                last, all_leaves, previous_shape, flip, lower_row, upper_row, leaves_width, leaves_space, leaves_depth, keep, hwea)
                         else:
                             shapes, depths, spaces, single_depths = place_next(shape, starts, ends, all_paths, max_first, first,
-                                last, all_leaves, previous_shape, flip, upper_row, lower_row, leaves_width, leaves_space, leaves_depth, keep)
+                                last, all_leaves, previous_shape, flip, upper_row, lower_row, leaves_width, leaves_space, leaves_depth, keep, hwea)
                         temp_shapes = temp_shapes + shapes
                         temp_depths = temp_depths + depths
                         temp_spaces = temp_spaces + spaces
@@ -136,7 +135,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
                     starts = copy.deepcopy(short_table[j]['starts'])
                     ends = copy.deepcopy(short_table[j]['ends'])
                     shapes, depths, spaces, single_depths = place_next(shape, starts, ends, all_paths, max_first, first, last,
-                            all_leaves, previous_shape, flip, upper_row, lower_row, leaves_width, leaves_space, leaves_depth, keep)
+                            all_leaves, previous_shape, flip, upper_row, lower_row, leaves_width, leaves_space, leaves_depth, keep, hwea)
                     temp_shapes = temp_shapes + shapes
                     temp_depths = temp_depths + depths
                     temp_spaces = temp_spaces + spaces
@@ -188,7 +187,7 @@ def keep_placing(input_shapes, table, shapes, first, last, rows, switch, new_map
     f.close()
 
 
-def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leaves, previous_shape, flip, up_rows, down_rows, leaves_width, leaves_space, leaves_depth, keep):
+def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leaves, previous_shape, flip, up_rows, down_rows, leaves_width, leaves_space, leaves_depth, keep, hwea):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
     front_locs = [[] for _ in range(len(starts) + 1)]
@@ -196,6 +195,9 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
     back_leaves = [[] for _ in range(len(starts) + 1)]
     back_locs = [[] for _ in range(len(starts) + 1)]
     start_rank, _, _ = rank_starts(starts, shape)
+    if hwea:
+        start_rank.remove(0)
+        start_rank.append(0)
     end_rank, _, _ = rank_ends(ends, shape)
     to_keep = min(keep, longest)
     for i in range(len(starts)):
@@ -390,7 +392,8 @@ def check_combine_depth(ori_shape, next_shape):
                                                    temp_shape[i - 1][back_locs[i]] == 0)):
                     found_reduc = 0
                     break
-                elif i > 0 and i < len(new_shape) - 1 and (new_shape[i][back_locs[i] + 1] != 0 or
+                elif i > 0 and i < len(new_shape) - 1 \
+                        and (new_shape[i][back_locs[i] + 1] != 0 or
                                                            (new_shape[i - 1][back_locs[i]] != 0 and
                                                             temp_shape[i - 1][back_locs[i]] == 0) or
                                                            (new_shape[i + 1][back_locs[i]] != 0 and

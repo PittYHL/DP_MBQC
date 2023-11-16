@@ -1,0 +1,14 @@
+A 0 
+A 1 
+A 2 
+A 3 
+A 4 
+CNOT 0 1
+CNOT 1 2
+CNOT 2 3
+CNOT 3 4
+A 0 
+A 1 
+A 2 
+A 3 
+A 4 

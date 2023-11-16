@@ -5,7 +5,7 @@ from placement import *
 input_shape = 10
 longest = 80
 final_keep = 8
-def place_leaves(table, shapes, first, last, rows, loc, keep):
+def place_leaves(table, shapes, first, last, rows, loc, keep, hwea):
     for i in range(len(first)):
         if first[i] < 0:
             first[i] = abs(first[i])
@@ -32,7 +32,7 @@ def place_leaves(table, shapes, first, last, rows, loc, keep):
         ends = copy.deepcopy(short_table[i]['ends'])
         shape = short_shapes[i]
         depths[i], front_locs[i], front_leaves[i], start_locs[i], back_locs[i], back_leaves[i], end_locs[i], final_shapes = \
-            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc, leaves_width, leaves_space, leaves_depth, keep)
+            place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows, loc, leaves_width, leaves_space, leaves_depth, keep, hwea)
     return final_shapes
 
 def generate_leaves(available_length):
@@ -251,7 +251,7 @@ def sort_shapes(last_table, last_shapes): #current version only allows maximum w
     return valid_table, valid_shapes
 
 def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, all_leaves, final_shapes, rows,
-                      loc, leaves_width, leaves_space, leaves_depth, keep):
+                      loc, leaves_width, leaves_space, leaves_depth, keep, hwea):
     front_shapes = [[] for _ in range(len(starts) + 1)] #the first one is the original
     front_leaves = [[] for _ in range(len(starts) + 1)]
     front_locs = [[] for _ in range(len(starts) + 1)]
@@ -259,6 +259,9 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
     back_leaves = [[] for _ in range(len(starts) + 1)]
     back_locs = [[] for _ in range(len(starts) + 1)]
     start_rank, _, _ = rank_starts(starts, shape)
+    if hwea:
+        start_rank.remove(0)
+        start_rank.append(0)
     end_rank, _, _ = rank_ends(ends, shape)
     extra_row = 0
     to_keep = min(keep, longest)
@@ -767,18 +770,6 @@ def rank_starts(starts, shape):
                     for i in range(len(indexes)):
                         start_indexes.append(indexes[i])
                         sort_locs.pop(0)
-            # elif together and sort_locs[0] == 0 and indexes[0] == 0:
-            #     for i in reversed(range(len(indexes))):
-            #         start_indexes.append(indexes[i])
-            #         sort_locs.pop(0)
-            #     up_y = starts[0][0]
-            #     down_y = starts[0][0]
-            # elif together and sort_locs[0] == 0 and indexes[-1] == len(starts) - 1:
-            #     for i in range(len(indexes)):
-            #         start_indexes.append(indexes[i])
-            #         sort_locs.pop(0)
-            #     up_y = starts[-1][0]
-            #     down_y = starts[-1][0]
             else:
                 y_locs = []
                 for i in indexes:
