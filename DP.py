@@ -15,7 +15,7 @@ from iterations import keep_placing
 final_keep = 5 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
-def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea):
+def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_measuremnts):
     new_map = []
     original_measurements = 0
     for row in ori_map:
@@ -31,22 +31,34 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea):
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map)
     original_wire = sum(W_len)
-    table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep)
-    print("finish placing core")
+    table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts)
+    print("finished placing core")
+    depths = show_depth(shapes)
     middle_shapes = shapes[-1]
-    valid_table, valid_shapes = pick_shapes(table, shapes)
-    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
-    final_shapes, min_depth = sort_final_shapes(final_shapes)
-    new_wire = count_wire(valid_shapes)
+    new_wire = count_wire(shapes)
+    wires, ranked_depth, ranked_wires = rank_depth(new_wire, depths)  # rank the depths and associated with wire
+    if reduce_measuremnts:
+        valid_table, valid_shapes = pick_shapes_count(table, shapes, new_wire, ranked_wires)
+    else:
+        valid_table, valid_shapes = pick_shapes(table, shapes)
+    # final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
+    # final_shapes, min_depth = sort_final_shapes(final_shapes)
+    # new_wire = count_wire(valid_shapes)
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    print('original measuremnts: ', original_measurements)
     print("original depth: ", len(new_map[0]))
-    print("Optimized depth: ", min_depth)
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
+    # print("Optimized depth: ", min_depth)
+    print("depths: ", depths)
+    print("original wire: ", original_wire)
+    print("ranked depths: ", ranked_depth)
+    print("ranked wires: ", ranked_wires)
+    print("new wire: ", wires)
+    # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')
 
-def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep):
+def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts):
     # n_nodes = np.array(nodes)
     # np.savetxt("example/iqp20_nodes.csv", n_nodes, fmt = '%s',delimiter=",")
     order = list(nx.topological_sort(graph))
@@ -70,7 +82,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep):
     inde_qubit_record[0] = get_qubit_record(current, nodes, [])
     inde_table[0], inde_shape[0], inde_placed[0], onle_one_pre[1], nodes_left, inde_qubit_record[0] = \
         place_independent(current, graph, inde_qubit_record[0], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                        current_independent_node, placed, keep)
+                        current_independent_node, placed, keep, reduce_measuremnts)
     if len(independet_node) == 1:
         return inde_table[-1], inde_shape[-1]
     i = 0
@@ -82,7 +94,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep):
         inde_qubit_record[i] = get_qubit_record(current, nodes, [])
         inde_table[i], inde_shape[i], new_placed, onle_one_pre[i + 1], nodes_left, inde_qubit_record[i] = \
             place_independent(current, graph, inde_qubit_record[i], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                              new_independent_node, [], keep)
+                              new_independent_node, [], keep, reduce_measuremnts)
         inde_placed[i] = new_placed
     rest_independent_node = copy.deepcopy(independet_node)
     while nodes_left!= []:
@@ -107,11 +119,11 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep):
         inde_qubit_record[i] = inde_qubit_record[combination[0] - 1] + inde_qubit_record[combination[1] - 1]
         inde_table[i], inde_shape[i], inde_placed[i], onle_one_pre[i + 1], nodes_left, inde_qubit_record[i] = \
             place_combine([temp_table], [temp_shape], inde_qubit_record[i], graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                              rest_independent_node, placed, keep)
+                              rest_independent_node, placed, keep, reduce_measuremnts)
     return inde_table[-1], inde_shape[-1]
 
 
-def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, independent_node, placed, keep):
+def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, independent_node, placed, keep, reduce_measuremnts):
     index = 0
     onle_one_pre = [] #record node with only one predecessor placed
     placed.append(current)
@@ -162,9 +174,9 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         c_qubit = find_qubits(nodes, placed, next)
         new_sucessors = list(graph.successors(next))
         loc = check_loc(nodes, placed, next, graph, two_wire)
-        print(next)
+        # print(next)
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
-                               W_len, placed, two_wire, only_right, qubit_record, keep)  # place the next node
+                               W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts)  # place the next node
         qubit_record = get_qubit_record(next, nodes, qubit_record)
         index = index + 1
         for j in next_list:
@@ -176,7 +188,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
     return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
 
 def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
-                              independent_node, placed, keep):
+                              independent_node, placed, keep, update_measuremnt_count):
     index = 0
     onle_one_pre = []  # record node with only one predecessor placed
     valid = [[]]
@@ -192,9 +204,9 @@ def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_
         c_qubit = find_qubits(nodes, placed, next)
         new_sucessors = list(graph.successors(next))
         loc = check_loc(nodes, placed, next, graph, two_wire)
-        print(next)
+        # print(next)
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
-                               W_len, placed, two_wire, only_right, qubit_record, keep)  # place the next node
+                               W_len, placed, two_wire, only_right, qubit_record, keep, update_measuremnt_count)  # place the next node
         qubit_record = get_qubit_record(next, nodes, qubit_record)
         index = index + 1
         for j in next_list:
@@ -353,7 +365,7 @@ def available_node(parent_index, next, parent_row):
     return next[indexes[temp_parent.index(min(temp_parent))]]
 
 #(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes, W_len, placed, two_wire, only_right, qubit_record)
-def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes, W_len, placed, two_wire, only_right, qubit_record, keep):
+def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes, W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts):
     next_list = [next]
     c_gate, gate_index = next.split('.')
     parents = [] #record parents
@@ -497,7 +509,7 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
     new_preds = preds + not_placed_preds
     while nextnext != 0:
         next = nextnext
-        print(next)
+        # print(next)
         newnew_sucessors = list(graph.successors(nextnext))
         shapes, fronts, spaces, successors, nextnext, parents, same_qubit, wire_targets, starts, ends = fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents,
             nodes, same_qubit, wire_targets, starts, ends)
@@ -513,26 +525,33 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         next_list.append(next)
     while prepre != 0:
         next = prepre
-        print(next)
+        # print(next)
         newnew_preds = list(graph.predecessors(prepre))
         shapes, fronts, spaces, new_preds, prepre, parents, same_qubit, wire_targets, starts, ends = fill_prepre(
             shapes, fronts, spaces, new_preds, not_placed_preds, prepre, newnew_preds, parents,
             nodes, same_qubit, wire_targets, starts, ends)
         next_list.append(next)
+    if reduce_measuremnts and c_gate == 'W':
+        update_measuremnt_count = 1
+    else:
+        update_measuremnt_count = 0
     update(next, c_qubit, shapes, fronts, spaces, parents, table, shape, valid, successors,
-           p_index, rows, wire_targets, new_preds, qubits, starts, ends, keep)
+           p_index, rows, wire_targets, new_preds, qubits, starts, ends, keep, update_measuremnt_count)
     return next_list
 
 def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, valid, successors,
-           p_index, row_limit, wire_targets, new_preds, qubits, starts, ends, keep):
+           p_index, row_limit, wire_targets, new_preds, qubits, starts, ends, keep, update_measuremnt_count):
     rows = []
     depths = []
+    measuremnt_counts = []
     table.append([])
     shape.append([])
     invalid_list = []
     for i in range(len(shapes)):
         rows.append(len(shapes[i]))
         depths.append(len(shapes[i][0]))
+        count = count_measuremnt(shapes[i])
+        measuremnt_counts.append(count)
         start = starts[i]
         end = ends[i]
         start.sort()
@@ -551,7 +570,10 @@ def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, vali
         rows.pop(index)
         depths.pop(index)
         spaces.pop(index)
-    new_valid = check_valid(rows, depths, spaces, row_limit, c_qubit, qubits, keep)
+    if update_measuremnt_count:
+        new_valid = check_valid_count(rows, measuremnt_counts, depths, row_limit, c_qubit, qubits, keep)
+    else:
+        new_valid = check_valid(rows, depths, spaces, row_limit, c_qubit, qubits, keep)
     valid.append(new_valid)
 
 def detect_only_right(next, graph, only_right):
@@ -633,6 +655,41 @@ def check_valid(rows, depths, spaces, row_limit, c_qubit, qubits, keep):
     long_index = []
     for index in valid: #remove too long
         if depths[index] - min_dep >= long:
+            long_index.append(index)
+    for index in reversed(long_index):
+        valid.remove(index)
+    return valid
+
+def check_valid_count(rows, depths, spaces, row_limit, c_qubit, qubits, keep):
+    row_collect = copy.deepcopy(rows)
+    row_collect = list(set(row_collect))
+    row_collect.sort() #row collection
+    row_index = [] #indexes of rows
+    valid = []
+    min_dep = min(depths)
+    row_collect_num = [[] for _ in range(len(row_collect))]
+    for i in range(len(rows)):
+        index = row_collect.index(rows[i])
+        row_index.append(index)
+        row_collect_num[index].append(i)
+    for i in range(len(row_collect_num)):
+        if c_qubit == qubits:
+            keep_more = 2 * keep
+        else:
+            keep_more = keep
+        if len(row_collect_num[i]) > keep_more:
+            c_depths = []
+            c_spaces = []
+            for j in row_collect_num[i]:
+                c_depths.append(depths[j])
+                c_spaces.append(spaces[j])
+            valid = valid + rank_result(row_collect_num[i], c_depths, c_spaces, keep_more)
+        else:
+            valid = valid + row_collect_num[i]
+    valid.sort()
+    long_index = []
+    for index in valid: #remove too long
+        if depths[index] - min_dep >= long + 5:
             long_index.append(index)
     for index in reversed(long_index):
         valid.remove(index)
@@ -919,7 +976,7 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
         placed.append(nextnext)
         next = nextnext
         nodes_left.remove(next)
-        print(next)
+        # print(next)
         newnew_sucessors = list(graph.successors(nextnext))
         parents = ['NA']*len(new_shapes)
         new_shapes, front_collect, space_collect, new_sucessor, nextnext, parents, same_qubit, targets_collect, starts_collect, ends_collect = fill_nextnext(new_shapes, front_collect, space_collect, new_sucessor, nextnext, newnew_sucessors, parents,
@@ -1242,6 +1299,37 @@ def pick_shapes(table, shapes):
         valid_shapes.append(shapes[i])
     return valid_table, valid_shapes
 
+def pick_shapes_count(table, shapes, wires, ranked_wires):
+    best_wires = []
+    widths = []
+    depths = []
+    indexes = []
+    valid_table = []
+    valid_shapes = []
+    for i in range(len(wires)):
+        if wires[i] == ranked_wires[0]:
+            indexes.append(i)
+            widths.append(table[i]['row'])
+            depths.append(table[i]['D'])
+            best_wires.append(ranked_wires[0])
+    if len(best_wires) <= final_keep:
+        for i in indexes:
+            valid_table.append(table[i])
+            valid_shapes.append(shapes[i])
+    else:
+        valid_indexes = []
+        copy_depths = copy.deepcopy(depths)
+        copy_depths.sort(reverse=True)
+        while len(valid_indexes) <= final_keep:
+            best_depth = copy_depths.pop(0)
+            index = depths.index(best_depth)
+            depths.pop(index)
+            valid_indexes.append(indexes.pop(index))
+        for i in valid_indexes:
+            valid_table.append(table[i])
+            valid_shapes.append(shapes[i])
+    return valid_table, valid_shapes
+
 def count_wire(final_shapes):
     wires = []
     for shape in final_shapes:
@@ -1252,3 +1340,36 @@ def count_wire(final_shapes):
                     count = count + 1
         wires.append(count)
     return wires
+
+def show_depth(shapes):
+    depths = []
+    for shape in shapes:
+        depths.append(len(shape[0]))
+    return depths
+
+def rank_depth(new_wire, depths): #for each depth, show its wires
+    copy_new_wire = copy.deepcopy(new_wire)
+    copy_new_wire = list(set(copy_new_wire))
+    copy_new_wire.sort()
+    copy_copy_depths = copy.deepcopy(depths)
+    copy_depths = copy.deepcopy(depths)
+    copy_depths.sort()
+    copy_depths = list(set(copy_depths))
+    copy_depths.sort()
+    wires = []
+    for i in range(len(copy_depths)):
+        wires.append([])
+    for j in range(len(copy_depths)):
+        for i in range(len(depths)):
+            if depths[i] == copy_depths[j]:
+                wires[j].append(new_wire[i])
+        wires[j].sort()
+    return wires, copy_depths, copy_new_wire
+
+def count_measuremnt(shape):
+    count = 0
+    for i in range(len(shape)):
+        for j in range(len(shape[i])):
+            if shape[i][j] != 0:
+                count += 1
+    return count

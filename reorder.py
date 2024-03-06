@@ -7,13 +7,15 @@ from new_swap import *
 from DP import *
 import copy
 from dense import *
+from leaves import *
 import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 26
-rows = 53
+qubits = 27
+rows = 80
 flip = False
+reduce_measuremnts = 1 #set the number of measurements as objective
 first_loc = 'm'
 file_name = "results/hwea15_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
 # force_right = False#force the second c to the right
@@ -32,7 +34,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/vqe26b.txt') as f:
+with open('Benchmarks/iqp27b.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -256,7 +258,7 @@ if wire_remove:
     new_map = remove_wire(new_map, qubits, remove_single, remove_y)
     new_map = new_eliminate_redundant(new_map, qubits)
 uti0, use0 = cal_utilization2(new_map, rows)
-# newnew_map = convert_new_map(new_map)
+newnew_map = convert_new_map(new_map)
 # n_map = np.array(newnew_map)
 # np.savetxt("example/hwea5el_111.csv", n_map, fmt = '%s',delimiter=",")
 # file = open("example/hlf27el.csv", "r")
@@ -264,7 +266,12 @@ uti0, use0 = cal_utilization2(new_map, rows)
 # file.close()
 print(use0)
 print(uti0)
-# hwea = True
-# for i in range(6, 7):
-#     file_name = "./results/hwea15_" + first_loc + "_" + str(rows) + "_" + str(i) + ".txt"
-#     DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea)
+print('g')
+hwea = False
+if reduce_measuremnts:
+    reduced = "m_count"
+else:
+    reduced = "depth"
+for i in range(20, 25):
+    file_name = "./results/bv5_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced + ".txt"
+    DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts)

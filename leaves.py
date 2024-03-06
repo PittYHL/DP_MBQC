@@ -73,6 +73,7 @@ def generate_leaves(available_length):
             depths[i].append(len(leaves[i][j][0]))
     return leaves, paths, widths, spaces, depths
 
+
 def generate_next(next, loc, path):
     new_leaves = []
     new_loc = []
