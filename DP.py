@@ -15,6 +15,7 @@ from iterations import keep_placing
 final_keep = 5 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
+print("good")
 def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_measuremnts):
     new_map = []
     original_measurements = 0
