@@ -12,19 +12,20 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 27
-rows = 80
+qubits = 8
+rows = 23
 flip = False
-reduce_measuremnts = 1 #set the number of measurements as objective
+reduce_measuremnts = 0 #set the number of measurements as objective
 first_loc = 'm'
 file_name = "results/hwea15_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
+QAOA = 0
 # force_right = False#force the second c to the right
 # special = 0#for special leaves
 wire_remove = 1
 remove_single = 1 #for removing the single qubit gate
 remove_SWAP = 1
 # restricted = 0 #restrict the qubit locate
-remove_y = 0#for CNOT (QAOA)
+remove_y = 1#for CNOT (QAOA)
 # special_greedy = 0
 physical_gate = []
 tracker= []
@@ -34,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/iqp27b.txt') as f:
+with open('Benchmarks/qaoa8b.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -149,6 +150,38 @@ while(new_circuit!=[]):
             map[tracker[t1] * 2 + 1].extend(CNOT[1])
             map[tracker[t2] * 2].extend(CNOT[2])
             physical_gate.append({'gate':name, 'type':'D', 't1':tracker[t1], 't2':tracker[t2]})
+    elif (gate == ZZ):
+        if t1 in layer or t2 in layer:
+            layer = []
+            layer.append(t1)
+            layer.append(t2)
+            fill_map(qubits, map)
+        else:
+            layer.append(t1)
+            layer.append(t2)
+        if tracker[t1] - tracker[t2] == 1:
+            map[tracker[t1] * 2].extend(ZZ[0])
+            map[tracker[t2] * 2 + 1].extend(ZZ[1])
+            map[tracker[t2] * 2].extend(ZZ[2])
+            physical_gate.append({'gate': name, 'type': 'D', 't1': tracker[t1], 't2': tracker[t2]})
+        elif tracker[t1] - tracker[t2] == -1:
+            map[tracker[t1] * 2].extend(ZZ[0])
+            map[tracker[t1] * 2 + 1].extend(ZZ[1])
+            map[tracker[t2] * 2].extend(ZZ[2])
+            physical_gate.append({'gate': name, 'type': 'D', 't1': tracker[t1], 't2': tracker[t2]})
+        elif tracker[t1] - tracker[t2] > 1:
+            # worst case
+            intel_swap(map, t2, t1, tracker, new_circuit, physical_gate)
+            map[tracker[t1] * 2].extend(ZZ[0])
+            map[tracker[t2] * 2 + 1].extend(ZZ[1])
+            map[tracker[t2] * 2].extend(ZZ[2])
+            physical_gate.append({'gate': name, 'type': 'D', 't1': tracker[t1], 't2': tracker[t2]})
+        else:
+            intel_swap(map, t1, t2, tracker, new_circuit, physical_gate)
+            map[tracker[t1] * 2].extend(ZZ[0])
+            map[tracker[t1] * 2 + 1].extend(ZZ[1])
+            map[tracker[t2] * 2].extend(ZZ[2])
+            physical_gate.append({'gate': name, 'type': 'D', 't1': tracker[t1], 't2': tracker[t2]})
     elif(gate==CZS):
         if t1 in layer or t2 in layer:
             layer = []
@@ -241,8 +274,9 @@ if remove_SWAP:
 DAG = dense(qubits, physical_gate)
 dense_map = cons_new_map(qubits,DAG)
 uti0, use0 = cal_utilization2(dense_map, rows)
-de_map = np.array(dense_map)
-# np.savetxt("iqp27_de.csv", de_map, fmt = '%s',delimiter=",")
+de_map = convert_new_map(dense_map)
+de_map = np.array(de_map)
+# np.savetxt("example/qaoa4el.csv", de_map, fmt = '%s',delimiter=",")
 #schedule = scheduling(qubits, DAG, rows)
 #sche_ela = sche_ela(qubits,DAG, rows)
 #ela_no = only_elastic(qubits,DAG, rows)
@@ -259,8 +293,8 @@ if wire_remove:
     new_map = new_eliminate_redundant(new_map, qubits)
 uti0, use0 = cal_utilization2(new_map, rows)
 newnew_map = convert_new_map(new_map)
-# n_map = np.array(newnew_map)
-# np.savetxt("example/hwea5el_111.csv", n_map, fmt = '%s',delimiter=",")
+n_map = np.array(newnew_map)
+# np.savetxt("example/qaoa8el_111.csv", n_map, fmt = '%s',delimiter=",")
 # file = open("example/hlf27el.csv", "r")
 # new_map = list(csv.reader(file, delimiter=","))
 # file.close()
@@ -272,6 +306,6 @@ if reduce_measuremnts:
     reduced = "m_count"
 else:
     reduced = "depth"
-for i in range(20, 25):
-    file_name = "./results/bv5_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced + ".txt"
-    DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts)
+for i in range(12, 13):
+    file_name = "./results/qaoa8_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced + ".txt"
+    DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts, QAOA)

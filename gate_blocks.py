@@ -17,6 +17,7 @@ CNOT = [['X','Y','Y','Y','Y','Y'],['Z','Z','Z','Y','Z','Z'],['X','X','X','Y','X'
 SW = [['X','X','S','X'],['Z','S','X','Z'],['X','X','S','X']]
 CPS = [['X','X','P','X'],['Z','P','X','Z'],['X','X','P','X']]
 CZS = [['X','X','P','X'],['Z','P','X','Z'],['X','X','P','X']]
+ZZ = [['X','Y','Y','Y','Y','Y','X','Y','Y','Y','Y','Y'],['Z','Z','Z','Y','Z','Z','Z','Z','Z','Y','Z','Z'],['X','X','X','Y','X','X','R','X','X','Y','X','X']]
 DCNOT1 = [ ['X','Y','Y','Y'],
 ['Z','Z','Z','Y'],
 ['X','X','X','Y'],
@@ -51,6 +52,8 @@ def de_gate(gate):
         return A, int(X[1]), int(X[1]), int(X[1]), 'A'
     elif X[0] == 'CNOT':
         return CNOT, int(X[1]), int(X[2]), int(X[2]), 'CNOT'
+    elif X[0] == 'ZZ':
+        return ZZ, int(X[1]), int(X[2]), int(X[2]), 'ZZ'
     elif X[0] == 'CZ':
         return CZS, int(X[1]), int(X[2]), int(X[2]), 'CZ'
     elif X[0] == 'CP':

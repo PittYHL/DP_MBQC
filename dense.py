@@ -812,19 +812,44 @@ def move_R(new_map):
                 new_map[i][j] = 'X'
     return new_map
 
+# def move_R2(new_map):
+#     for i in range(len(new_map)):
+#         for j in reversed(range(len(new_map[i]))):
+#             # if j + 2 < len(new_map[i]):
+#                 # if new_map[i][j] == 'R' and new_map[i][j + 1] == new_map[i][j + 2] == 'X':
+#                 #     length = 0
+#                 #     for k in range(j + 1, len(new_map[i])):
+#                 #         if new_map[i][k] == 'X':
+#                 #             length = length + 1
+#                 #         else:
+#                 #             break
+#                 #     new_map[i][j + length] = 'R'
+#                 #     new_map[i][j] = 'X'
+#             if j < len(new_map[i]) - 3 and new_map[i][j] == new_map[i][j + 1] == 'X' and new_map[i][j + 2] == new_map[i][j + 3] == 'Y':
+#                 length = 0
+#                 for k in reversed(range(j + 1)):
+#                     if new_map[i][k] == 'X':
+#                         length = length + 1
+#                     else:
+#                         break
+#                 new_map[i][j - length + 1:j - length+3] = ['Y','Y']
+#                 new_map[i][j + 2: j + 4] = ['X', 'X']
+#     return new_map
+
 def move_R2(new_map):
     for i in range(len(new_map)):
         for j in range(len(new_map[i])):
-            if new_map[i][j] == 'R' and new_map[i][j + 1] == new_map[i][j + 2] == 'X':
-                length = 0
-                for k in range(j + 1, len(new_map[i])):
-                    if new_map[i][k] == 'X':
-                        length = length + 1
-                    else:
-                        break
-                new_map[i][j + length] = 'R'
-                new_map[i][j] = 'X'
-            elif j < len(new_map[i]) - 3 and new_map[i][j] == new_map[i][j + 1] == 'Y' and new_map[i][j + 2] == new_map[i][j + 3] == 'X':
+            if j < len(new_map[i]) - 3:
+                if new_map[i][j] == 'R' and new_map[i][j + 1] == new_map[i][j + 2] == 'X':
+                    length = 0
+                    for k in range(j + 1, len(new_map[i])):
+                        if new_map[i][k] == 'X':
+                            length = length + 1
+                        else:
+                            break
+                    new_map[i][j + length] = 'R'
+                    new_map[i][j] = 'X'
+            if j < len(new_map[i]) - 3 and new_map[i][j] == new_map[i][j + 1] == 'Y' and new_map[i][j + 2] == new_map[i][j + 3] == 'X':
                 length = 0
                 for k in range(j + 2, len(new_map[i])):
                     if new_map[i][k] == 'X':

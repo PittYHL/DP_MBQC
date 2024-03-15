@@ -2,7 +2,7 @@ import copy
 import networkx as nx
 from matplotlib import pyplot as plt
 
-def gen_index(map):
+def gen_index(map, QAOA):
     cut = []
     s_row = []
     for i in range(1, len(map)-1, 2):
@@ -39,6 +39,8 @@ def gen_index(map):
         first.append(front) #length for the patterns in the front
         last.append(back) #length for the patterns in the back
     nodes, W_len, A_loc, B_loc, C_loc = gen_DAG(map,s_row)
+    if QAOA:
+        reduce_CNOT(nodes, W_len, A_loc, B_loc, C_loc)
     graph = nx.DiGraph()
     for node in nodes:
         for i in range(len(node) - 1):
@@ -299,3 +301,56 @@ def find_qubits(nodes, placed, next):
                 qubit.append(i)
                 break
     return len(qubit)
+
+def reduce_CNOT(nodes, W_len, A_loc, B_loc, C_loc):
+    visited = [] #track visited first CNOT node
+    wire_to_be_removed = []
+    A_to_be_removed = []
+    C_to_be_removed = []
+    for i in range(len(nodes) - 1):
+        j = 0
+        while (j < len(nodes[i])):
+            next = nodes[i][j]
+            c_gate, gate_index = next.split('.')
+            if next not in visited and c_gate == 'A' and int(gate_index) %2 == 0:
+                next_gate = nodes[i][j + 1]
+                n_gate, _ = next_gate.split('.')
+                visited.append(next)
+                j = j + 1
+                if n_gate == 'C':
+                    for k in range(5):
+                        next_gate = nodes[i].pop(j)
+                        _, n_index = next_gate.split('.')
+                        C_to_be_removed.append(int(n_index))
+                    next_gate = nodes[i].pop(j)
+                    index = nodes[i + 1].index(next) #index of the CNOT in next line
+                    wire = nodes[i + 1].pop(index + 1)
+                    _, wire_index = wire.split('.')
+                    wire_to_be_removed.append(int(wire_index))
+                    next_gate = nodes[i + 1].pop(index + 1)
+                    _, n_index = next_gate.split('.')
+                    A_to_be_removed.append(int(n_index))
+                elif n_gate == 'W':
+                    wire = nodes[i].pop(j)
+                    _, wire_index = wire.split('.')
+                    wire_to_be_removed.append(int(wire_index))
+                    next_gate = nodes[i].pop(j)
+                    _, n_index = next_gate.split('.')
+                    A_to_be_removed.append(int(n_index))
+                    index = nodes[i + 1].index(next) #index of the CNOT in next line
+                    for k in range(5):
+                        next_gate = nodes[i + 1].pop(index + 1)
+                        _, n_index = next_gate.split('.')
+                        C_to_be_removed.append(int(n_index))
+                    next_gate = nodes[i + 1].pop(index + 1)
+            else:
+                j = j + 1
+    A_to_be_removed.sort()
+    C_to_be_removed.sort()
+    wire_to_be_removed.sort()
+    for i in reversed(A_to_be_removed):
+        A_loc[i] = 0
+    for i in reversed(C_to_be_removed):
+        C_loc[i] = 0
+    for i in reversed(wire_to_be_removed):
+        W_len[i] = 0
