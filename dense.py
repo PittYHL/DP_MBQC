@@ -262,12 +262,12 @@ def remove_wire(map, qubits, remove_single, remove_y):
                         found_wire = 1
                     elif j != 0 and new_map[i*2][j] != 'Y' and\
                         remove_single and (new_map[i * 2][j] == new_map[i * 2][j - 1] == 'X'
-                        and new_map[i * 2 + 2][j - 1] == 'Z'):  # upper wire
+                        and new_map[i * 2 + 2][j - 1] == 'Z'):  # upper wire of CP
                         length = check_wire_len(new_map, i * 2, j)
                         found_wire = 1
                     elif j != 0 and new_map[i*2 + 2][j] != 'Y' and\
                         remove_single and (new_map[i * 2 + 2][j] == new_map[i * 2 + 2][j - 1] == 'X'
-                        and new_map[i * 2][j - 1] == 'Z'):  # upper wire
+                        and new_map[i * 2][j - 1] == 'Z'):  # lower wire of CP
                         length = check_wire_len(new_map, i * 2 + 2, j)
                         found_wire = 1
                     elif j != 0 and new_map[i*2][j] == 'Y'and new_map[i*2 + 1][j] == 'Y'and new_map[i*2 + 2][j] == 'Y' and\
@@ -303,6 +303,64 @@ def remove_wire(map, qubits, remove_single, remove_y):
                             new_map[i * 2].insert(j - length + 1, 'X')
                             new_map[i * 2 + 1].insert(j - length + 1, 'Z')
                             new_map[i * 2 + 2].insert(j - length + 3, 'X')
+                        new_map = move_R(new_map)
+                    elif j != 0 and new_map[i*2][j] == 'Y'and new_map[i*2 + 1][j] == 'Y'and new_map[i*2 + 2][j] == 'Y' and\
+                    new_map[i*2][j - 1] == 'Y'and new_map[i*2][j - 2] == 'Y' and remove_single and\
+                    new_map[i*2][j - 3] == new_map[i*2][j - 4] == 'X' and new_map[i*2 + 2][j - 1] == 'Z': # upper wire of XXYYY
+                        length = check_wire_len(new_map, i * 2, j - 3)
+                        found_wire = 1
+                        CX = 1
+                        for k in range(length):
+                            new_map[i * 2].pop(j - length - 2)
+                            new_map[i * 2 + 1].pop(j - length)
+                            new_map[i * 2 + 2].pop(j - length)
+                        for k in range(length):
+                            new_map[i * 2].insert(j - length + 3, 'X')
+                            new_map[i * 2 + 1].insert(j - length + 1, 'Z')
+                            new_map[i * 2 + 2].insert(j - length + 1, 'X')
+                        new_map = move_R(new_map)
+                    elif j != 0 and new_map[i*2][j] == 'Y'and new_map[i*2 + 1][j] == 'Y'and new_map[i*2 + 2][j] == 'Y' and\
+                    new_map[i*2 + 2][j - 1] == 'Y'and new_map[i*2 + 2][j - 2] == 'Y' and remove_single and\
+                    new_map[i*2 + 2][j - 3] == new_map[i*2 + 2][j - 4] == 'X' and new_map[i*2][j - 1] == 'Z': # lower wire of XXYYY
+                        length = check_wire_len(new_map, i * 2 + 2, j - 3)
+                        found_wire = 1
+                        CX = 1
+                        for k in range(length):
+                            new_map[i * 2].pop(j - length)
+                            new_map[i * 2 + 1].pop(j - length)
+                            new_map[i * 2 + 2].pop(j - length - 2)
+                        for k in range(length):
+                            new_map[i * 2].insert(j - length + 1, 'X')
+                            new_map[i * 2 + 1].insert(j - length + 1, 'Z')
+                            new_map[i * 2 + 2].insert(j - length + 3, 'X')
+                        new_map = move_R(new_map)
+                    elif j != 0 and new_map[i*2][j] == 'Y'and new_map[i*2 + 1][j] == 'Y'and new_map[i*2 + 2][j] == 'Y' and\
+                    remove_single and new_map[i*2][j - 1] == new_map[i*2][j - 2] == 'X' and new_map[i*2 + 2][j - 1] == 'Z': # upper wire of XXY
+                        length = check_wire_len(new_map, i * 2, j - 1)
+                        found_wire = 1
+                        CX = 1
+                        for k in range(length):
+                            new_map[i * 2].pop(j - length)
+                            new_map[i * 2 + 1].pop(j - length)
+                            new_map[i * 2 + 2].pop(j - length)
+                        for k in range(length):
+                            new_map[i * 2].insert(j - length + 1, 'X')
+                            new_map[i * 2 + 1].insert(j - length + 1, 'Z')
+                            new_map[i * 2 + 2].insert(j - length + 3, 'X')
+                        new_map = move_R(new_map)
+                    elif j != 0 and new_map[i*2][j] == 'Y'and new_map[i*2 + 1][j] == 'Y'and new_map[i*2 + 2][j] == 'Y' and\
+                    remove_single and new_map[i*2 + 2][j - 1] == new_map[i*2 + 2][j - 2] == 'X' and new_map[i*2][j - 1] == 'Z': # lower wire of XXY
+                        length = check_wire_len(new_map, i * 2 + 2, j - 1)
+                        found_wire = 1
+                        CX = 1
+                        for k in range(length):
+                            new_map[i * 2].pop(j - length)
+                            new_map[i * 2 + 1].pop(j - length)
+                            new_map[i * 2 + 2].pop(j - length)
+                        for k in range(length):
+                            new_map[i * 2].insert(j - length + 3, 'X')
+                            new_map[i * 2 + 1].insert(j - length + 1, 'Z')
+                            new_map[i * 2 + 2].insert(j - length + 1, 'X')
                         new_map = move_R(new_map)
                     if found_wire and CX == 0:
                         for k in range(length):

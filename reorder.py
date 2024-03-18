@@ -12,8 +12,8 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 8
-rows = 23
+qubits = 14
+rows = 41
 flip = False
 reduce_measuremnts = 0 #set the number of measurements as objective
 first_loc = 'm'
@@ -35,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qaoa8b.txt') as f:
+with open('Benchmarks/qaoa14.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -297,7 +297,7 @@ if wire_remove:
 uti0, use0 = cal_utilization2(new_map, rows)
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
-# np.savetxt("example/qaoa8el_111c.csv", n_map, fmt = '%s',delimiter=",")
+# np.savetxt("example/qaoa14el_111b.csv", n_map, fmt = '%s',delimiter=",")
 # file = open("example/hlf27el.csv", "r")
 # new_map = list(csv.reader(file, delimiter=","))
 # file.close()

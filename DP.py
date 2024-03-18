@@ -9,7 +9,7 @@ from fill_map import *
 from leaves import *
 from last_step import *
 special_greedy = 0
-restrict = 0 #restrict C be in one row
+restrict = 1 #restrict C be in one row
 from iterations import keep_placing
 
 # keep = 10
@@ -42,21 +42,25 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
         valid_table, valid_shapes = pick_shapes_count(table, shapes, new_wire, ranked_wires)
     else:
         valid_table, valid_shapes = pick_shapes(table, shapes)
-    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
-    final_shapes, min_depth = sort_final_shapes(final_shapes)
-    new_wire = count_wire(valid_shapes)
-    # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
-    n_map = convert_new_map2(final_shapes[-1])
-    n_map = np.array(n_map)
-    np.savetxt("example/qaoa4_core2.csv", n_map, fmt='%s', delimiter=",")
-    print('original measuremnts: ', original_measurements)
-    print("original depth: ", len(new_map[0]))
-    print("Optimized depth: ", min_depth)
+
     print("depths: ", depths)
     print("original wire: ", original_wire)
     print("ranked depths: ", ranked_depth)
     print("ranked wires: ", ranked_wires)
     print("new wire: ", wires)
+    n_map = convert_new_map2(valid_shapes[-1])
+    n_map = np.array(n_map)
+    # np.savetxt("example/qaoa14_core.csv", n_map, fmt='%s', delimiter=",")
+    print(valid_table[-1]['starts'])
+    print(valid_table[-1]['ends'])
+
+    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
+    final_shapes, min_depth = sort_final_shapes(final_shapes)
+    new_wire = count_wire(valid_shapes)
+    # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    print('original measuremnts: ', original_measurements)
+    print("original depth: ", len(new_map[0]))
+    print("Optimized depth: ", min_depth)
     # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
@@ -139,53 +143,60 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
     valid = [[]]
     two_wire = [] #for node both predecessors are wires
     only_right = []  # record the C that only can go right (if previous two-qubit gate and later are on the same qubits)
+    active_qubits = []
+    for i in range(qubits):
+        active_qubits.append(i)
     if gate == 'A' and QAOA == 0:
         dep = 1
         temp_shape.append([1])
         temp_shape.append([1])
         temp_shape.append([1])
         if len(succ) == 2:
-            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0], [2, 0]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[]})
+            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0], [2, 0]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[], 'active':active_qubits})
+            p_gate1, _ = succ[0].split('.')
+            p_gate2, _ = succ[1].split('.')
+            if p_gate1 == 'C' or p_gate2 == 'C':
+                only_right = detect_only_right(current, graph, only_right)
         elif len(succ) == 1 and QAOA == 0:
-            end = detec_end(current, succ[0], nodes)
+            end, end_q = detec_end(current, succ[0], nodes)
             if end == 'u':
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[0, 0]]})
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[0, 0]], 'active':active_qubits})
             else:
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[2, 0]]})
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[2, 0]], 'active':active_qubits})
     elif gate == 'A' and QAOA == 1:
         dep = 12
         temp_shape.append([1,1,1,1,1,1,1])
         temp_shape.append([1,0,0,0,0,0,1])
         temp_shape.append([1,1,1,1,1,1,1])
         if len(succ) == 2:
-            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6], [2, 6]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[]})
+            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6], [2, 6]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[], 'active':active_qubits})
             p_gate1, _ = succ[0].split('.')
             p_gate2, _ = succ[1].split('.')
             if p_gate1 == 'C' or p_gate2 == 'C':
                 only_right = detect_only_right(current, graph, only_right)
         elif len(succ) == 1 and QAOA == 0:
-            end = detec_end(current, succ[0], nodes)
+            end, end_q = detec_end(current, succ[0], nodes)
             if end == 'u':
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[0, 6]]})
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[0, 6]], 'active':active_qubits})
             else:
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[2, 6]]})
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[2, 6]], 'active':active_qubits})
     else:
         dep = 2
         temp_shape.append([1,1])
         temp_shape.append([1,1])
         temp_shape.append([1,1])
         if len(succ) == 2:
-            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1], [2, 1]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[]})
+            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1], [2, 1]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[], 'active':active_qubits})
         elif len(succ) == 1:
-            end = detec_end(current, succ[0], nodes)
+            end, end_q = detec_end(current, succ[0], nodes)
             if end == 'u':
                 table[0].append(
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 1]],
-                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[0,1]]})
+                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[0,1]], 'active':active_qubits})
             else:
                 table[0].append(
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1]],
-                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[2,1]]})
+                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[2,1]], 'active':active_qubits})
     shape[0].append(temp_shape)
     valid[0].append(0)
     next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node, only_right)
@@ -196,7 +207,11 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         new_sucessors = list(graph.successors(next))
         loc = check_loc(nodes, placed, next, graph, two_wire)
         print(next)
-        if next == 'W.11':
+        # if index > 300:
+        #     n_map = convert_new_map2(shape[-1][-1])
+        #     n_map = np.array(n_map)
+        #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
+        if next == 'A.41':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
@@ -414,7 +429,7 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
             p_gate, _ = pred.split('.')
             placed_preds.append(p_gate)
     if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(new_sucessors) == 1:
-        end = detec_end(next, new_sucessors[0], nodes)
+        end, end_q = detec_end(next, new_sucessors[0], nodes)
         if end == 0:
             nextnext = new_sucessors[0]
             same_qubit = 1
@@ -949,7 +964,7 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
     loc1 = check_loc(nodes, placed1, next, graph, [])
     next_sucessors = list(graph.successors(next))
     if len(next_sucessors) == 1:
-        end = detec_end(next, next_sucessors[0], nodes)
+        end, end_q = detec_end(next, next_sucessors[0], nodes)
     else:
         end = ''
     if loc0 == loc1:
@@ -963,7 +978,7 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
     nextnext = 0
     same_qubit = 0
     if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(next_sucessors) == 1:
-        end = detec_end(next, next_sucessors[0], nodes)
+        end, end_q = detec_end(next, next_sucessors[0], nodes)
         if end == 0:
             nextnext = next_sucessors[0]
             same_qubit = 1

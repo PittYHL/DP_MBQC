@@ -34,7 +34,7 @@ def place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     ends.append(end_p)
     if (loc == 'u' or loc == 'r') and right == 0 and avoid_dir != 'u': #up
         placed = 0
-        if base[0] == 0 and p_row + 1 + extra_qubits * 2<= rows:
+        if base[0] == 0 and p_row + 1 + extra_qubits * 2<= rows: #save enough space for unlocated
             new = new + 1
             placed = 1
             new_row = [0]*len(p_shape[0])

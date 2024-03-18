@@ -206,12 +206,16 @@ def get_qubit_record(current, nodes, qubit_record):
 def detec_end(next, succ, nodes):
     first_qubit = 0
     second_qubit = 0
+    end_qubit = []
+    next_qubit = []
     gate, _ = succ.split('.')
     for i in range(len(nodes)):
         if next in nodes[i]:
             first_qubit = first_qubit + i
+            end_qubit.append(i)
         if succ in nodes[i]:
             second_qubit = second_qubit + i
+            next_qubit.append(i)
     if gate == 'A' or gate == 'B':
         if second_qubit - first_qubit < 0:
             end = 'd'
@@ -224,7 +228,8 @@ def detec_end(next, succ, nodes):
             end = 'd'
         else:
             end = 'u'
-    return end
+    end_q = list(set(end_qubit) - set(next_qubit))
+    return end, end_q
 
 def check_loc(nodes, placed, next, graph, two_wire):
     newnext = 0
