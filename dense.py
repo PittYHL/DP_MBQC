@@ -255,20 +255,20 @@ def remove_wire(map, qubits, remove_single, remove_y):
                 CX = 0
                 if remove_y:
                     if j != 0 and new_map[i*2][j] != 'Y' and new_map[i*2 + 2][j] != 'Y' and\
-                            new_map[i * 2][j] == new_map[i * 2][j - 1] == new_map[i * 2 + 2][j] == new_map[i * 2 + 2][j - 1] == 'X':
+                            new_map[i * 2][j] == new_map[i * 2][j - 1] == new_map[i * 2 + 2][j] == new_map[i * 2 + 2][j - 1] == 'X': #both are not CNOT
                         up_len = check_wire_len(new_map, i * 2, j)
                         low_len = check_wire_len(new_map, i * 2 + 2, j)
                         length = min(up_len, low_len)
                         found_wire = 1
-                    elif j != 0 and new_map[i*2][j] != 'Y' and new_map[i*2 + 2][j] != 'Y' and\
+                    elif j != 0 and new_map[i*2][j] != 'Y' and\
                         remove_single and (new_map[i * 2][j] == new_map[i * 2][j - 1] == 'X'
                         and new_map[i * 2 + 2][j - 1] == 'Z'):  # upper wire
-                        length = check_wire_len(new_map, i * 2, j - 1)
+                        length = check_wire_len(new_map, i * 2, j)
                         found_wire = 1
-                    elif j != 0 and new_map[i*2][j] != 'Y' and new_map[i*2 + 2][j] != 'Y' and\
+                    elif j != 0 and new_map[i*2 + 2][j] != 'Y' and\
                         remove_single and (new_map[i * 2 + 2][j] == new_map[i * 2 + 2][j - 1] == 'X'
                         and new_map[i * 2][j - 1] == 'Z'):  # upper wire
-                        length = check_wire_len(new_map, i * 2 + 2, j - 1)
+                        length = check_wire_len(new_map, i * 2 + 2, j)
                         found_wire = 1
                     elif j != 0 and new_map[i*2][j] == 'Y'and new_map[i*2 + 1][j] == 'Y'and new_map[i*2 + 2][j] == 'Y' and\
                     new_map[i*2][j - 1] == 'Y'and new_map[i*2][j - 2] == 'Y' and\

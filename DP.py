@@ -9,6 +9,7 @@ from fill_map import *
 from leaves import *
 from last_step import *
 special_greedy = 0
+restrict = 0 #restrict C be in one row
 from iterations import keep_placing
 
 # keep = 10
@@ -45,8 +46,9 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     final_shapes, min_depth = sort_final_shapes(final_shapes)
     new_wire = count_wire(valid_shapes)
     # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
-    n_map = np.array(final_shapes[-1])
-    np.savetxt("example/qaoa4_core.csv", n_map, fmt='%s', delimiter=",")
+    n_map = convert_new_map2(final_shapes[-1])
+    n_map = np.array(n_map)
+    np.savetxt("example/qaoa4_core2.csv", n_map, fmt='%s', delimiter=",")
     print('original measuremnts: ', original_measurements)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
@@ -611,19 +613,20 @@ def detect_only_right(next, graph, only_right):
             only_right.append(sucessors[1])
     s1 = sucessors[0]
     gs1, _ = s1.split('.')
-    while gs1 == 'C':
-        s1 = list(graph.successors(s1))[0]
-        gs1, _ = s1.split('.')
-        if gs1 == 'C':
-            only_right.append(s1)
-    if len(sucessors) == 2:
-        s2 = sucessors[1]
-        gs2, _ = s2.split('.')
-        while gs2 == 'C':
-            s2 = list(graph.successors(s2))[0]
+    if restrict:
+        while gs1 == 'C':
+            s1 = list(graph.successors(s1))[0]
+            gs1, _ = s1.split('.')
+            if gs1 == 'C':  #all right one only right
+                only_right.append(s1)
+        if len(sucessors) == 2:
+            s2 = sucessors[1]
             gs2, _ = s2.split('.')
-            if gs2 == 'C':
-                only_right.append(s2)
+            while gs2 == 'C':
+                s2 = list(graph.successors(s2))[0]
+                gs2, _ = s2.split('.')
+                if gs2 == 'C':
+                    only_right.append(s2)
     return only_right
 
 def detec_end_b(next, pred, nodes):

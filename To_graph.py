@@ -312,7 +312,7 @@ def reduce_CNOT(nodes, W_len, A_loc, B_loc, C_loc):
         while (j < len(nodes[i])):
             next = nodes[i][j]
             c_gate, gate_index = next.split('.')
-            if next not in visited and c_gate == 'A' and int(gate_index) %2 == 0:
+            if next not in visited and c_gate == 'A':
                 next_gate = nodes[i][j + 1]
                 n_gate, _ = next_gate.split('.')
                 visited.append(next)
@@ -323,6 +323,7 @@ def reduce_CNOT(nodes, W_len, A_loc, B_loc, C_loc):
                         _, n_index = next_gate.split('.')
                         C_to_be_removed.append(int(n_index))
                     next_gate = nodes[i].pop(j)
+                    visited.append(next_gate)
                     index = nodes[i + 1].index(next) #index of the CNOT in next line
                     wire = nodes[i + 1].pop(index + 1)
                     _, wire_index = wire.split('.')
@@ -343,6 +344,7 @@ def reduce_CNOT(nodes, W_len, A_loc, B_loc, C_loc):
                         _, n_index = next_gate.split('.')
                         C_to_be_removed.append(int(n_index))
                     next_gate = nodes[i + 1].pop(index + 1)
+                    visited.append(next_gate)
             else:
                 j = j + 1
     A_to_be_removed.sort()
