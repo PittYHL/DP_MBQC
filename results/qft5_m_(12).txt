@@ -1,0 +1,6 @@
+Original depth 20
+best depth 14
+Optimized 9 iterations depth: 110
+Individual widths are [14, 14, 14, 15, 15, 14, 14, 14, 15]
+Optimized reduction 2.375
+Average shape 14.333333333333334
