@@ -144,59 +144,70 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
     two_wire = [] #for node both predecessors are wires
     only_right = []  # record the C that only can go right (if previous two-qubit gate and later are on the same qubits)
     active_qubits = []
+    ends = []
     for i in range(qubits):
         active_qubits.append(i)
+        ends.append([])
     if gate == 'A' and QAOA == 0:
         dep = 1
         temp_shape.append([1])
         temp_shape.append([1])
         temp_shape.append([1])
         if len(succ) == 2:
-            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0], [2, 0]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[], 'active':active_qubits})
+            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0], [2, 0]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
             p_gate1, _ = succ[0].split('.')
             p_gate2, _ = succ[1].split('.')
             if p_gate1 == 'C' or p_gate2 == 'C':
                 only_right = detect_only_right(current, graph, only_right)
         elif len(succ) == 1 and QAOA == 0:
             end, end_q = detec_end(current, succ[0], nodes)
+            active_qubits.remove(end_q[0])
             if end == 'u':
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[0, 0]], 'active':active_qubits})
+                ends[end_q] = [0, 0]
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
             else:
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[2, 0]], 'active':active_qubits})
+                ends[end_q] = [2, 0]
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
     elif gate == 'A' and QAOA == 1:
         dep = 12
         temp_shape.append([1,1,1,1,1,1,1])
         temp_shape.append([1,0,0,0,0,0,1])
         temp_shape.append([1,1,1,1,1,1,1])
         if len(succ) == 2:
-            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6], [2, 6]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[], 'active':active_qubits})
+            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6], [2, 6]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
             p_gate1, _ = succ[0].split('.')
             p_gate2, _ = succ[1].split('.')
             if p_gate1 == 'C' or p_gate2 == 'C':
                 only_right = detect_only_right(current, graph, only_right)
         elif len(succ) == 1 and QAOA == 0:
             end, end_q = detec_end(current, succ[0], nodes)
+            active_qubits.remove(end_q[0])
             if end == 'u':
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[0, 6]], 'active':active_qubits})
+                ends[end_q] = [0, 6]
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
             else:
-                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[[2, 6]], 'active':active_qubits})
+                ends[end_q] = [2, 6]
+                table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 6]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
     else:
         dep = 2
         temp_shape.append([1,1])
         temp_shape.append([1,1])
         temp_shape.append([1,1])
         if len(succ) == 2:
-            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1], [2, 1]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':[], 'active':active_qubits})
+            table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1], [2, 1]], 'successor':[succ[0], succ[1]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
         elif len(succ) == 1:
             end, end_q = detec_end(current, succ[0], nodes)
+            active_qubits.remove(end_q[0])
             if end == 'u':
+                ends[end_q] = [0, 1]
                 table[0].append(
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 1]],
-                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[0,1]], 'active':active_qubits})
+                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': ends, 'active':active_qubits})
             else:
+                ends[end_q] = [2, 1]
                 table[0].append(
                     {'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 1]],
-                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': [[2,1]], 'active':active_qubits})
+                     'successor': [succ[0]], 'targets': [], 'preds':[], 'starts': [[0, 0], [2, 0]], 'ends': ends, 'active':active_qubits})
     shape[0].append(temp_shape)
     valid[0].append(0)
     next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node, only_right)
@@ -421,6 +432,8 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
     n_preds = list(graph.predecessors(next))
     same_qubit = 0
     nextnext = 0
+    active_qubits = table[p_index][0]['active']
+    end_q = []
     for pred in n_preds:
         if pred not in placed:
             not_placed = True
@@ -433,13 +446,19 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         if end == 0:
             nextnext = new_sucessors[0]
             same_qubit = 1
+        else:
+            active_qubits.remove(end_q[0])
     if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(new_sucessors) == 2: #detect only right(all second C will be forward)
         p_gate1, _ = new_sucessors[0].split('.')
         p_gate2, _ = new_sucessors[1].split('.')
         if p_gate1 == 'C' or p_gate2 == 'C':
             only_right = detect_only_right(next, graph, only_right)
-    if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(n_preds) == 1 and new_sucessors != []: #detect end point for backward
-        b_end = detec_end_b(next, new_sucessors[0], nodes)
+    # if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(n_preds) == 1 and new_sucessors != []: #detect end point for backward
+    #     b_end = detec_end_b(next, new_sucessors[0], nodes)
+    if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and new_sucessors == []:
+        end_q = detec_end2(next, nodes)
+        active_qubits.remove(end_q[0])
+        active_qubits.remove(end_q[1])
     parent = copy.deepcopy(table[p_index][0])
     successors = parent['successor']
     preds = parent['preds']
@@ -473,6 +492,8 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         only_right.remove(next)
     else:
         right = 0
+    if end_q != [] and end_q[0] == 0:
+        print('g')
     for j in parent_node: #iterate all the feasible node of the parents and create new table
         parent = copy.deepcopy(table[p_index][j])
         start_p = parent['starts']
@@ -500,20 +521,20 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
                 qubits - c_qubit, wire_target, wire_targets, right, next_qubit, qubit_record, start_p, end_p, starts, ends, avoild_points, avoid_dir)
             elif c_gate == 'A' and QAOA == 0:
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
-                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit)
+                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q)
             elif c_gate == 'A' and QAOA == 1:
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
-                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit)
+                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q)
             elif c_gate == 'B':
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
-                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit)
+                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q)
             elif c_gate == 'B1':
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_B1(p_shape, base, loc, rows, p_row,
                                                                                   front, shapes, fronts, spaces,
                                                                                   qubits - c_qubit, new_sucessors, end,
                                                                                   not_placed, wire_targets, wire_target,
                                                                                   next_qubit, qubit_record, start_p,
-                                                                                  end_p, starts, ends, new_qubit)
+                                                                                  end_p, starts, ends, new_qubit, end_q)
             elif c_gate == 'W':
                 wire_len = W_len[int(gate_index)] + 3 #for the special combination gate
                 t_index = preds.index(next)
@@ -552,8 +573,19 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         next = nextnext
         # print(next)
         newnew_sucessors = list(graph.successors(nextnext))
+        if len(newnew_sucessors) == 1:
+            end, end_q = detec_end(nextnext, newnew_sucessors[0], nodes)
+            if end == 0:
+                nextnext = new_sucessors[0]
+                same_qubit = 1
+            else:
+                active_qubits.remove(end_q[0])
+        elif len(newnew_sucessors) == 1:
+            end_q = detec_end2(nextnext, nodes)
+            active_qubits.remove(end_q[0])
+            active_qubits.remove(end_q[1])
         shapes, fronts, spaces, successors, nextnext, parents, same_qubit, wire_targets, starts, ends = fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents,
-            nodes, same_qubit, wire_targets, starts, ends)
+            nodes, same_qubit, wire_targets, starts, ends, end_q)
         if len(newnew_sucessors) == 1:  # detect end point for forward
             p_gate1, _ = newnew_sucessors[0].split('.')
             if p_gate1 == 'C':
@@ -577,11 +609,11 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
     else:
         update_measuremnt_count = 0
     update(next, c_qubit, shapes, fronts, spaces, parents, table, shape, valid, successors,
-           p_index, rows, wire_targets, new_preds, qubits, starts, ends, keep, update_measuremnt_count)
+           p_index, rows, wire_targets, new_preds, qubits, starts, ends, keep, update_measuremnt_count, active_qubits)
     return next_list
 
 def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, valid, successors,
-           p_index, row_limit, wire_targets, new_preds, qubits, starts, ends, keep, update_measuremnt_count):
+           p_index, row_limit, wire_targets, new_preds, qubits, starts, ends, keep, update_measuremnt_count, active_qubits):
     rows = []
     depths = []
     measuremnt_counts = []
@@ -596,13 +628,13 @@ def update(current, c_qubit, shapes, fronts, spaces, parents, table, shape, vali
         start = starts[i]
         end = ends[i]
         start.sort()
-        end.sort()
+        # end.sort()
         valid_starts_end = check_valid_start_end(start, end)
         if valid_starts_end == 0:
             invalid_list.append(i)
             continue
         table[p_index + 1].append({'New': current, 'P': parents[i], 'row': len(shapes[i]), 'S': spaces[i], 'D': depths[i], 'Q': c_qubit,
-        'front': fronts[i], 'successor': successors, 'targets':wire_targets[i], 'preds': new_preds, 'starts':start, 'ends':end})
+        'front': fronts[i], 'successor': successors, 'targets':wire_targets[i], 'preds': new_preds, 'starts':start, 'ends':end, 'active':active_qubits})
         shape[p_index + 1].append(shapes[i])
     invalid_list.sort(reverse=True)
     table[p_index] = [] #limit the memory
@@ -766,7 +798,7 @@ def rank_result(row_collect_num, c_depths, c_spaces, keep_more):
     selected.sort()
     return selected
 
-def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents, nodes, same_qubit, wire_targets, starts, ends):
+def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents, nodes, same_qubit, wire_targets, starts, ends, end_q):
     locs = []
     new_parents = []
     new_wire_target = []
@@ -793,28 +825,28 @@ def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors
         if gate == 'A' or gate == 'B':
             if second_qubit - first_qubit > 0:
                 for i in range(len(fronts)):
-                    ends[i].append(fronts[i][-2])
+                    ends[i][end_q[0]] = fronts[i][-2]
                     fronts[i].pop(-2)
             elif second_qubit - first_qubit < 0:
                 for i in range(len(fronts)):
-                    ends[i].append(fronts[i][-1])
+                    ends[i][end_q[0]] = fronts[i][-1]
                     fronts[i].pop(-1)
             else:
                 same_qubit = 1
         else:
             if first_qubit == second_qubit * 2 + 1:
                 for i in range(len(fronts)):
-                    ends[i].append(fronts[i][-1])
+                    ends[i][end_q[0]] = fronts[i][-1]
                     fronts[i].pop(-1)
             else:
                 for i in range(len(fronts)):
-                    ends[i].append(fronts[i][-2])
+                    ends[i][end_q[0]] = fronts[i][-2]
                     fronts[i].pop(-2)
 
     elif len(newnew_sucessors) == 0:
         for i in range(len(fronts)):
-            ends[i].append(fronts[i][-2])
-            ends[i].append(fronts[i][-1])
+            ends[i][end_q[0]] = fronts[i][-2]
+            ends[i][end_q[1]] = fronts[i][-1]
             fronts[i].pop(-1)
             fronts[i].pop(-1)
     successors.remove(nextnext)
@@ -1010,7 +1042,7 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
             point1 = table1[j]['front'][index1]
             gate, _ = next.split('.')
             new_shape, new_table = check_combine_possible(shape0[i], shape1[j], point0, point1, next, rows, loc0, front0,
-                                        front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                        front1, starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
             new_tables = new_tables + new_table
             new_shapes = new_shapes + new_shape
     rows_collect, depths_collect, space_collect, qubit_collect, front_collect, targets_collect, starts_collect, ends_collect = get_collection(new_tables)
@@ -1021,6 +1053,18 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
         # print(next)
         newnew_sucessors = list(graph.successors(nextnext))
         parents = ['NA']*len(new_shapes)
+        newnew_sucessors = list(graph.successors(nextnext))
+        if len(newnew_sucessors) == 1:
+            end, end_q = detec_end(nextnext, newnew_sucessors[0], nodes)
+            if end == 0:
+                nextnext = new_sucessors[0]
+                same_qubit = 1
+            else:
+                active_qubits.remove(end_q[0])
+        elif len(newnew_sucessors) == 1:
+            end_q = detec_end2(nextnext, nodes)
+            active_qubits.remove(end_q[0])
+            active_qubits.remove(end_q[1])
         new_shapes, front_collect, space_collect, new_sucessor, nextnext, parents, same_qubit, targets_collect, starts_collect, ends_collect = fill_nextnext(new_shapes, front_collect, space_collect, new_sucessor, nextnext, newnew_sucessors, parents,
             nodes, same_qubit, targets_collect, starts_collect, ends_collect)
         new_tables, rows_collect, depths_collect, qubit_collect = update_table(next, qubit_collect[0], new_shapes, front_collect, space_collect, new_sucessor, targets_collect, new_preds, starts_collect, ends_collect)
@@ -1033,57 +1077,57 @@ def combine(next, table0, shape0, table1, shape1, rows, nodes, placed0, placed1,
     return final_tables, final_shapes, placed, nodes_left
 
 def check_combine_possible(shape0, shape1, loc0, loc1, next, rows, pos0, front0, front1,
-                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits):
+                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits, end_q):
     new_table = []
     new_shape = []
     if pos0 == 'd': #shape0 on top
         #first situation
         new_loc1 = [loc0[0] + 2, loc0[1]]
         shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits,end_q)
         new_shape.append(shape)
         new_table.append(table)
         new_loc1 = [loc0[0] + 3, loc0[1] + 1]
         shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
         new_loc1 = [loc0[0] + 3, loc0[1] - 1]
         shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
-                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
         new_loc1 = [loc0[0] + 4, loc0[1]]
         shape, table = check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
                                            starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds,
-                                           next_sucessors, end, qubits)
+                                           next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
     elif pos0 == 'u': #shape0 down
         new_loc0 = [loc1[0] + 2, loc1[1]]
         shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
-                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
         new_loc0 = [loc1[0] + 3, loc1[1] + 1]
         shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
-                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
         new_loc0 = [loc1[0] + 3, loc1[1] - 1]
         shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
-                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
         new_loc0 = [loc1[0] + 4, loc1[1]]
         shape, table = check_valid_combine(shape1, shape0, loc1, loc0, new_loc0, next, rows, front1, front0,
-                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits)
+                                           starts1, starts0, ends1, ends0, targets1, targets0, new_sucessor, new_preds, next_sucessors, end, qubits, end_q)
         new_shape.append(shape)
         new_table.append(table)
     return new_shape, new_table
 
 def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0, front1,
-                        starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits): #loc0 is the upper shape
+                        starts0, starts1, ends0, ends1, targets0, targets1, new_sucessor, new_preds, next_sucessors, end, qubits, end_q): #loc0 is the upper shape
     gate, _ = next.split('.')
     new_shape = copy.deepcopy(shape0)
     new_table = []
@@ -1163,24 +1207,27 @@ def check_valid_combine(shape0, shape1, loc0, loc1, new_loc1, next, rows, front0
         starts1[i][0] = starts1[i][0] + X_offset1
         starts1[i][1] = starts1[i][1] + Y_offset1
     for i in range(len(ends0)):
-        ends0[i][0] = ends0[i][0] + X_offset0
-        ends0[i][1] = ends0[i][1] + Y_offset0
+        if ends0[i] != []:
+            ends0[i][0] = ends0[i][0] + X_offset0
+            ends0[i][1] = ends0[i][1] + Y_offset0
     for i in range(len(ends1)):
-        ends1[i][0] = ends1[i][0] + X_offset1
-        ends1[i][1] = ends1[i][1] + Y_offset1
+        if ends1[i] != []:
+            ends1[i][0] = ends1[i][0] + X_offset1
+            ends1[i][1] = ends1[i][1] + Y_offset1
     new_starts = starts0 + starts1
     new_target = targets0 + targets1
-    new_ends = ends0 + ends1
+    new_ends = combine_end(ends0, ends1)
     if len(next_sucessors) == 2:
         new_front = front0 + front1 + new_pts
     elif end == 'u':
         new_front = front0 + front1 + [new_pts[1]]
-        new_ends.append(new_pts[0])
+        new_ends[end_q[0]] = new_pts[0]
     elif end == 'd':
         new_front = front0 + front1 + [new_pts[0]]
-        new_ends.append(new_pts[1])
-    elif len(next_sucessors) == 1:
-        new_ends = new_ends + new_pts
+        new_ends[end_q[0]] = new_pts[1]
+    elif len(next_sucessors) == 0:
+        new_ends[end_q[0]] = new_pts[0]
+        new_ends[end_q[1]] = new_pts[1]
     new_table = {'New': next, 'P': 'NA', 'row': len(new_shape), 'S': space, 'D': len(new_shape[0]), 'Q': qubits,
         'front': new_front, 'successor': new_sucessor, 'targets':new_target, 'preds': new_preds, 'starts':new_starts, 'ends':new_ends}
     return new_shape, new_table
@@ -1226,9 +1273,13 @@ def check_valid_start_end(start, end):
         for i in range(len(start) - 1):
             if abs(start[i + 1][0] - start[i][0]) < 2:
                 return 0
-    if len(end) != 0:
-        for i in range(len(end) - 1):
-            if abs(end[i + 1][0] - end[i][0]) < 2:
+    temp_end = []
+    for i in range(len(end)):
+        if end[i] != []:
+            temp_end.append(end[i])
+    if len(temp_end) != 0:
+        for i in range(len(temp_end) - 1):
+            if abs(temp_end[i + 1][0] - temp_end[i][0]) < 2:
                 return 0
     return 1
 
@@ -1415,3 +1466,10 @@ def count_measuremnt(shape):
             if shape[i][j] != 0:
                 count += 1
     return count
+
+def combine_end(ends0, ends1):
+    new_end = copy.deepcopy(ends0)
+    for i in range(len(ends0)):
+        if ends0[i] == [] and ends1[i] != []:
+            new_end[i] = ends1[i]
+    return new_end

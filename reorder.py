@@ -12,8 +12,8 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 14
-rows = 41
+qubits = 8
+rows = 23
 flip = False
 reduce_measuremnts = 0 #set the number of measurements as objective
 first_loc = 'm'
@@ -35,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qaoa14.txt') as f:
+with open('Benchmarks/qaoa8b.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []

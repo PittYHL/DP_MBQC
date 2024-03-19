@@ -231,6 +231,15 @@ def detec_end(next, succ, nodes):
     end_q = list(set(end_qubit) - set(next_qubit))
     return end, end_q
 
+def detec_end2(next, nodes):
+    qubit_list = []
+    for i in range(len(nodes)):
+        if next in nodes[i]:
+            qubit_list.append(i)
+            if len(qubit_list) == 2:
+                break
+    return qubit_list
+
 def check_loc(nodes, placed, next, graph, two_wire):
     newnext = 0
     preds = list(graph.predecessors(next))

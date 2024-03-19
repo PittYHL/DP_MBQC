@@ -45,7 +45,8 @@ def place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             for element in new_wire_target2:  # change exsisting element
                 element[0] = element[0] + 1
             for element in new_end_p1:
-                element[0] = element[0] + 1
+                if element != []:
+                    element[0] = element[0] + 1
             for element in new_start_p1:
                 element[0] = element[0] + 1
             for element in avoild_points:
@@ -91,7 +92,7 @@ def place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit): #place B node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place B node
     restricted = 0
     #current
     new = 0 #how many new node
@@ -135,7 +136,8 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if base[0] < 2:
                 new_front.append([0, base[1] + 2])
                 new_front.append([base[0] + extra_row, base[1] + 2])  # add two base
@@ -148,16 +150,16 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
                     new_start_p1.append([base[0] - 2, base[1] + 1])
             if num_succ == 1 and end == 'u':
                 new_front1.append(new_front[1])
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
             elif num_succ == 1 and end == 'd':
                 new_front1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 2:
                 new_wire_target1.append([0, base[1] + 1])
             elif wire_not_placed and base[0] >= 2:
@@ -211,7 +213,8 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if base[0] < 3:
                 new_front.append([0, base[1] + 1])
                 new_front.append([base[0] + extra_row - 1, base[1] + 1])  # add two base
@@ -224,16 +227,16 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
                     new_start_p1.append([base[0] - 3, base[1]])
             if num_succ == 1 and end == 'u':
                 new_front1.append(new_front[1])
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
             elif num_succ == 1 and end == 'd':
                 new_front1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 3:
                 new_wire_target1.append([0, base[1]])
             elif wire_not_placed and base[0] >= 3:
@@ -278,16 +281,16 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
                 new_start_p1.append([base[0] + 2, base[1] + 1])
             if num_succ == 1 and end == 'u':
                 new_front1.append(new_front[1])
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
             elif num_succ == 1 and end == 'd':
                 new_front1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed:
                 new_wire_target1.append([base[0] + 2, base[1] + 1])
             new_shape1, space = fill_shape(new_shape1)
@@ -330,17 +333,17 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             if new_qubit and wire_not_placed==False:
                 new_start_p1.append([base[0] + 3, base[1]])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
                 new_front1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed:
                 new_wire_target1.append([base[0] + 3, base[1]])
             new_shape1, space = fill_shape(new_shape1)
@@ -353,7 +356,7 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit): #place B node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place B node
     #current
     new = 0 #how many new node
     num_succ = len(new_sucessors)
@@ -393,7 +396,8 @@ def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, ext
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if base[0] < 2:
                 new_front.append([0, base[1] + 1])
                 new_front.append([base[0] + extra_row, base[1] + 1])  # add two base
@@ -406,16 +410,16 @@ def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, ext
                     new_start_p1.append([base[0] - 2, base[1]])
             if num_succ == 1 and end == 'u':
                 new_front1.append(new_front[1])
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
             elif num_succ == 1 and end == 'd':
                 new_front1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 2:
                 new_wire_target1.append([0, base[1]])
             elif wire_not_placed and base[0] >= 2:
@@ -456,16 +460,16 @@ def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, ext
                 new_start_p1.append([base[0] + 2, base[1]])
             if num_succ == 1 and end == 'u':
                 new_front1.append(new_front[1])
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
             elif num_succ == 1 and end == 'd':
                 new_front1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[0]] = new_front[1]
             if wire_not_placed:
                 new_wire_target1.append([base[0] + 2, base[1]])
             new_shape1, space = fill_shape(new_shape1)
@@ -478,7 +482,7 @@ def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, ext
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit): #place A node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place A node
     restricted = 0
     new = 0  # how many new node
     num_succ = len(new_sucessors)
@@ -521,7 +525,8 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if extra_row != 0:
                 new_front.append([0, base[1] + 1])
                 new_front.append([base[0] + extra_row, base[1] + 1])  # add two base
@@ -533,17 +538,17 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
                 if new_qubit and wire_not_placed==False:
                     new_start_p1.append([base[0] - 2, base[1] + 1])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 2:
                 new_wire_target1.append([0, base[1] + 1])
             elif wire_not_placed and base[0] >= 2:
@@ -589,7 +594,8 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if extra_row != 0:
                 new_front.append([0, base[1]])
                 new_front.append([base[0] + extra_row - 1, base[1]])  # add two base
@@ -601,17 +607,17 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
                 if new_qubit and wire_not_placed==False:
                     new_start_p1.append([base[0] - 3, base[1]])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 3:
                 new_wire_target1.append([0, base[1]])
             elif wire_not_placed and base[0] >= 3:
@@ -656,17 +662,17 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             if new_qubit and wire_not_placed==False:
                 new_start_p1.append([base[0] + 2, base[1] + 1])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed:
                 new_wire_target1.append([base[0] + 2, base[1] + 1])
             new_shape1, space = fill_shape(new_shape1)
@@ -705,17 +711,17 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             if new_qubit and wire_not_placed==False:
                 new_start_p1.append([base[0] + 3, base[1]])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed:
                 new_wire_target1.append([base[0] + 3, base[1]])
             new_shape1, space = fill_shape(new_shape1)
@@ -728,7 +734,7 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit): #place A node QAOA edition
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place A node QAOA edition
     restricted = 0
     new = 0  # how many new node
     num_succ = len(new_sucessors)
@@ -773,7 +779,8 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if extra_row != 0:
                 new_front.append([0, base[1] + 7])
                 new_front.append([base[0] + extra_row, base[1] + 7])  # add two base
@@ -785,17 +792,17 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
                 if new_qubit and wire_not_placed==False:
                     new_start_p1.append([base[0] - 2, base[1] + 1])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 2:
                 new_wire_target1.append([0, base[1] + 1])
             elif wire_not_placed and base[0] >= 2:
@@ -847,7 +854,8 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             for element in new_start_p1:
                 element[0] = element[0] + extra_row
             for element in new_end_p1:
-                element[0] = element[0] + extra_row
+                if element != []:
+                    element[0] = element[0] + extra_row
             if extra_row != 0:
                 new_front.append([0, base[1] + 6])
                 new_front.append([base[0] + extra_row - 1, base[1] + 6])  # add two base
@@ -859,17 +867,17 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
                 if new_qubit and wire_not_placed==False:
                     new_start_p1.append([base[0] - 3, base[1]])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed and base[0] < 3:
                 new_wire_target1.append([0, base[1]])
             elif wire_not_placed and base[0] >= 3:
@@ -917,17 +925,17 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             if new_qubit and wire_not_placed==False:
                 new_start_p1.append([base[0] + 2, base[1] + 1])
             if num_succ == 1 and end == 'u':
-                new_end_p1.append(new_front[0])
+                new_end_p1[end_q[0]] = new_front[0]
                 new_front1.append(new_front[1])
             elif num_succ == 1 and end == 'd':
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[1]
                 new_front1.append(new_front[0])
             elif num_succ == 2 or (num_succ == 1 and end == 0):
                 new_front1.append(new_front[0])
                 new_front1.append(new_front[1])
             elif num_succ == 0:
-                new_end_p1.append(new_front[0])
-                new_end_p1.append(new_front[1])
+                new_end_p1[end_q[0]] = new_front[0]
+                new_end_p1[end_q[1]] = new_front[1]
             if wire_not_placed:
                 new_wire_target1.append([base[0] + 2, base[1] + 1])
             new_shape1, space = fill_shape(new_shape1)
