@@ -222,8 +222,8 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        if next == 'A.41':
-            print('g')
+        # if next == 'A.11':
+        #     print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
         qubit_record = get_qubit_record(next, nodes, qubit_record)
@@ -451,6 +451,8 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         p_gate2, _ = new_sucessors[1].split('.')
         if p_gate1 == 'C' or p_gate2 == 'C':
             only_right = detect_only_right(next, graph, only_right)
+    if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and new_sucessors == []:
+        end_q = detec_end2(next, nodes)
     # if (c_gate == 'A' or c_gate == 'B' or c_gate == 'B1') and len(n_preds) == 1 and new_sucessors != []: #detect end point for backward
     #     b_end = detec_end_b(next, new_sucessors[0], nodes)
     parent = copy.deepcopy(table[p_index][0])
@@ -488,6 +490,15 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         right = 0
     if end_q != [] and end_q[0] == 0:
         print('g')
+    #delete later
+    if c_gate != 'W' and len(active_qubits) != qubits:
+        parent = copy.deepcopy(table[p_index][parent_node[-1]])
+        end_p = parent['ends']
+        front = parent['front']
+        base = front[c_index]
+        avoid_dir = check_row_limit(next, nodes, active_qubits, end_p, loc, base)  # avoid exceed the end
+        print('')
+
     for j in parent_node: #iterate all the feasible node of the parents and create new table
         parent = copy.deepcopy(table[p_index][j])
         start_p = parent['starts']
@@ -498,14 +509,16 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
         p_row = p_table['row']
         wire_target = parent['targets']  # for recording the current wire target
         preds = parent['preds']  # recording the current preds
-        keep_right = check_row_limit(next, nodes, active_qubits, end_p, rows, loc)  #avoid exceed the end
         if next not in two_wire and not_placed_preds != n_preds: #forward
-            base = front.pop(c_index) #start base
+            base = front.pop(c_index)  # start base
+            avoid_dir = 0
+            if c_gate != 'W' and len(active_qubits) != qubits:
+                avoid_dir = check_row_limit(next, nodes, active_qubits, end_p, loc, base)  # avoid exceed the end
+                print('')
             next_qubit = get_next_qubit(nodes, next)
             if c_gate == 'C': #check if only right
                 avoild_points = check_avoid(front, p_shape)
                 p_gate1, _ = new_sucessors[0].split('.')
-                avoid_dir = 0
                 if p_gate1 == 'A' or p_gate1 == 'B':
                     new_loc = check_loc(nodes, placed + next_list, new_sucessors[0], graph, two_wire)
                     if new_loc == 'u':
@@ -1482,11 +1495,80 @@ def combine_end(ends0, ends1):
             new_end[i] = ends1[i]
     return new_end
 
-def check_row_limit(next, nodes, active_qubits, end_p, rows, end, loc):
+def check_row_limit(next, nodes, active_qubits, end_p, loc, base):
+    gate, _ = next.split('.')
     qubits = []
-    for i in range(len(nodes)):
-        if next in nodes[i]:
-            qubits.append(i)
-        if len(qubits) == 2:
-            break
-    if len(next)
+    if gate == 'C':
+        for i in range(len(nodes)):
+            if next in nodes[i]:
+                qubits.append(i)
+            if len(qubits) == 1:
+                break
+    else:
+        for i in range(len(nodes)):
+            if next in nodes[i]:
+                qubits.append(i)
+            if len(qubits) == 2:
+                break
+    upper_qubits, lower_qubit = check_qubit_limit(qubits[0], qubits[0], active_qubits, len(nodes)) #upper means location, but smaller number
+    if upper_qubits == 0 and lower_qubit == 0:
+        return 0
+    elif (upper_qubits == 0 and loc == 'u') or (lower_qubit == 0 and loc == 'd'):
+        return 0
+    elif upper_qubits != 0 and loc == 'u':
+        available_row = base[0] - end_p[qubits[0] - upper_qubits][0]
+        if gate != 'C':
+            available_row = available_row - 2
+        if upper_qubits * 2 >= available_row:
+            return 'u'
+        elif upper_qubits * 2 < available_row:
+            return 0
+    elif lower_qubit != 0 and loc == 'd':
+        available_row = end_p[qubits[1] + lower_qubit][0] - base[0]
+        if gate != 'C':
+            available_row = available_row - 2
+        if lower_qubit * 2 >= available_row:
+            return 'd'
+        elif lower_qubit * 2 < available_row:
+            return 0
+    elif loc == 'r':
+        if upper_qubits != 0:
+            available_row = base[0] - end_p[qubits[0] - upper_qubits][0]
+            if upper_qubits * 2 >= available_row:
+                return 'u'
+            elif upper_qubits * 2 < available_row:
+                return 0
+        elif lower_qubit != 0:
+            available_row = end_p[qubits[1] + lower_qubit][0] - base[0]
+            if lower_qubit * 2 >= available_row:
+                return 'd'
+            elif lower_qubit * 2 < available_row:
+                return 0
+    # print('g')
+
+def check_qubit_limit(q0, q1, active_qubits, qubits):
+    lower_loc = active_qubits.index(q0)
+    upper_loc = active_qubits.index(q1)
+    lower_qubits = 0
+    higher_qubits = 0
+    if lower_loc != q0:
+        if lower_loc == 0:
+            lower_qubits = 1
+        else:
+            for i in reversed(range(1, lower_loc + 1)):
+                if active_qubits[i] - active_qubits[i-1] == 1:
+                    lower_qubits += 1
+                elif active_qubits[i] - active_qubits[i-1] > 1:
+                    break
+            lower_qubits += 1 #the qubit gap to the ended
+    if len(active_qubits) - upper_loc != qubits - q1: #if no qubits end higher than q1
+        if upper_loc == len(active_qubits) - 1:
+            higher_qubits = 1
+        else:
+            for i in range(upper_loc, len(active_qubits) - 1):
+                if active_qubits[i + 1] - active_qubits[i] == 1:
+                    higher_qubits += 1
+                elif active_qubits[i + 1] - active_qubits[i] > 1:
+                    break
+            higher_qubits += 1 #the qubit gap to the ended
+    return lower_qubits, higher_qubits
