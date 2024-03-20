@@ -92,7 +92,7 @@ def place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place B node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q, avoid_dir): #place B node
     restricted = 0
     #current
     new = 0 #how many new node
@@ -171,7 +171,7 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if (base[0] == 0) or \
+        if avoid_dir != 'u' and (base[0] == 0) or \
             (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0 and ((base[0] < 3 and p_row + 3 - base[0] + extra_qubits * 2 <= rows)
             or (base[0] >= 3  and base[0] - 3 >= up_qubits * 2))): #first case: on top
             if (base[0] == 0 and len(p_shape) + 3 + extra_qubits * 2 > rows) or (restricted and new_qubit == 0 and abs(base[0] - 3 -qubit_row) > restrict_max)\
@@ -300,7 +300,7 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0\
+        if avoid_dir != 'd' and (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0\
             and ((base[0] + 4 >= len(p_shape) and p_row + base[0] + 4 - len(p_shape) + extra_qubits * 2 <= rows) \
                  or (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2))): #first case: on bot
             if (base[0] == len(p_shape) - 1 and len(p_shape) + 3 + extra_qubits * 2 > rows) or (restricted and new_qubit == 0 and abs(base[0] + 3 -qubit_row) > restrict_max)\
@@ -482,7 +482,7 @@ def place_B1(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, ext
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place A node
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q, avoid_dir): #place A node
     restricted = 0
     new = 0  # how many new node
     num_succ = len(new_sucessors)
@@ -560,7 +560,7 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if (base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
+        if avoid_dir != 'u' and (base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
             and ((base[0] < 3 and p_row + 3 - base[0] + extra_qubits * 2 <= rows) or \
                  (base[0] >= 3 and base[0] - 3 >= up_qubits * 2 and p_shape[base[0] - 3][base[1]] == 0))):  # first case: on top
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == 0) or (restricted and new_qubit == 0 and abs(base[0] - 3 -qubit_row) > restrict_max)\
@@ -682,7 +682,7 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
+        if avoid_dir != 'd' and (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
             ((base[0] + 4 >= len(p_shape) and p_row +base[0] + 4 - len(p_shape) + extra_qubits * 2 <= rows) or \
              (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2 and p_shape[base[0] + 3][base[1]] == 0))):  # first case: on bot
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == len(p_shape) - 1) or (restricted and new_qubit == 0 and abs(base[0] + 3 - qubit_row) > restrict_max)\
@@ -734,7 +734,7 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
     return shapes, fronts, spaces, new, wire_targets, starts, ends
 
 def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extra_qubits, new_sucessors, end, wire_not_placed,
-            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q): #place A node QAOA edition
+            wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q, avoid_dir): #place A node QAOA edition
     restricted = 0
     new = 0  # how many new node
     num_succ = len(new_sucessors)
@@ -814,7 +814,7 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if (base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
+        if avoid_dir != 'u' and (base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
             and ((base[0] < 3 and p_row + 3 - base[0] + extra_qubits * 2 <= rows) or \
                  (base[0] >= 3 and base[0] - 3 >= up_qubits * 2 and p_shape[base[0] - 3][base[1]] == 0))):  # first case: on top
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == 0) or (restricted and new_qubit == 0 and abs(base[0] - 3 -qubit_row) > restrict_max)\
@@ -945,7 +945,7 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
+        if avoid_dir != 'd' and (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
             ((base[0] + 4 >= len(p_shape) and p_row +base[0] + 4 - len(p_shape) + extra_qubits * 2 <= rows) or \
              (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2 and p_shape[base[0] + 3][base[1]] == 0))):  # first case: on bot
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == len(p_shape) - 1) or (restricted and new_qubit == 0 and abs(base[0] + 3 - qubit_row) > restrict_max)\

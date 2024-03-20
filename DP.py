@@ -222,8 +222,8 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        # if next == 'A.11':
-        #     print('g')
+        if next == 'C.45':
+            print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
         qubit_record = get_qubit_record(next, nodes, qubit_record)
@@ -491,13 +491,13 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
     if end_q != [] and end_q[0] == 0:
         print('g')
     #delete later
-    if c_gate != 'W' and len(active_qubits) != qubits:
-        parent = copy.deepcopy(table[p_index][parent_node[-1]])
-        end_p = parent['ends']
-        front = parent['front']
-        base = front[c_index]
-        avoid_dir = check_row_limit(next, nodes, active_qubits, end_p, loc, base)  # avoid exceed the end
-        print('')
+    # if c_gate != 'W' and len(active_qubits) != qubits:
+    #     parent = copy.deepcopy(table[p_index][parent_node[-1]])
+    #     end_p = parent['ends']
+    #     front = parent['front']
+    #     base = front[c_index]
+    #     avoid_dir = check_row_limit(next, nodes, active_qubits, end_p, loc, base)  # avoid exceed the end
+    #     print('')
 
     for j in parent_node: #iterate all the feasible node of the parents and create new table
         parent = copy.deepcopy(table[p_index][j])
@@ -514,7 +514,6 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
             avoid_dir = 0
             if c_gate != 'W' and len(active_qubits) != qubits:
                 avoid_dir = check_row_limit(next, nodes, active_qubits, end_p, loc, base)  # avoid exceed the end
-                print('')
             next_qubit = get_next_qubit(nodes, next)
             if c_gate == 'C': #check if only right
                 avoild_points = check_avoid(front, p_shape)
@@ -528,14 +527,14 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
                 qubits - c_qubit, wire_target, wire_targets, right, next_qubit, qubit_record, start_p, end_p, starts, ends, avoild_points, avoid_dir)
             elif c_gate == 'A' and QAOA == 0:
-                shapes, fronts, spaces, new, wire_targets, starts, ends = place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
-                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q)
+                shapes, fronts, spaces, new, wire_targets, starts, ends = place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, qubits - c_qubit,
+                        new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q, avoid_dir)
             elif c_gate == 'A' and QAOA == 1:
-                shapes, fronts, spaces, new, wire_targets, starts, ends = place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
-                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q)
+                shapes, fronts, spaces, new, wire_targets, starts, ends = place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, qubits - c_qubit,
+                        new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q, avoid_dir)
             elif c_gate == 'B':
-                shapes, fronts, spaces, new, wire_targets, starts, ends = place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
-                qubits - c_qubit, new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q)
+                shapes, fronts, spaces, new, wire_targets, starts, ends = place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, qubits - c_qubit,
+                        new_sucessors, end, not_placed, wire_targets, wire_target, next_qubit, qubit_record, start_p, end_p, starts, ends, new_qubit, end_q, avoid_dir)
             elif c_gate == 'B1':
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_B1(p_shape, base, loc, rows, p_row,
                                                                                   front, shapes, fronts, spaces,
@@ -1510,7 +1509,11 @@ def check_row_limit(next, nodes, active_qubits, end_p, loc, base):
                 qubits.append(i)
             if len(qubits) == 2:
                 break
-    upper_qubits, lower_qubit = check_qubit_limit(qubits[0], qubits[0], active_qubits, len(nodes)) #upper means location, but smaller number
+    if gate == 'C':
+        upper_qubits, lower_qubit = check_qubit_limit(qubits[0], qubits[0], active_qubits, len(nodes)) #upper means location, but smaller number
+        qubits.append(qubits[0])
+    else:
+        upper_qubits, lower_qubit = check_qubit_limit(qubits[0], qubits[1], active_qubits, len(nodes))
     if upper_qubits == 0 and lower_qubit == 0:
         return 0
     elif (upper_qubits == 0 and loc == 'u') or (lower_qubit == 0 and loc == 'd'):
