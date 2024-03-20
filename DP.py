@@ -50,7 +50,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     print("new wire: ", wires)
     n_map = convert_new_map2(valid_shapes[-1])
     n_map = np.array(n_map)
-    # np.savetxt("example/qaoa14_core.csv", n_map, fmt='%s', delimiter=",")
+    np.savetxt("example/bv15_core.csv", n_map, fmt='%s', delimiter=",")
     print(valid_table[-1]['starts'])
     print(valid_table[-1]['ends'])
 
@@ -163,10 +163,10 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
             end, end_q = detec_end(current, succ[0], nodes)
             active_qubits.remove(end_q[0])
             if end == 'u':
-                ends[end_q] = [0, 0]
+                ends[end_q[0]] = [0, 0]
                 table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[2, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
             else:
-                ends[end_q] = [2, 0]
+                ends[end_q[0]] = [2, 0]
                 table[0].append({'New': current, 'P': 'NA', 'row': 3, 'S': 0, 'D': dep, 'Q': 2, 'front': [[0, 0]], 'successor':[succ[0]], 'targets':[], 'preds':[], 'starts':[[0, 0], [2, 0]], 'ends':ends, 'active':active_qubits})
     elif gate == 'A' and QAOA == 1:
         dep = 12
@@ -218,11 +218,12 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         new_sucessors = list(graph.successors(next))
         loc = check_loc(nodes, placed, next, graph, two_wire)
         print(next)
-        # if index > 300:
+        print(len(shape[-1]))
+        # if index %20 == 0:
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        if next == 'C.45':
+        if next == 'B.114':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
@@ -513,6 +514,8 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
             base = front.pop(c_index)  # start base
             avoid_dir = 0
             if c_gate != 'W' and len(active_qubits) != qubits:
+                # if j == parent_node[-1]:
+                #     print('')
                 avoid_dir = check_row_limit(next, nodes, active_qubits, end_p, loc, base)  # avoid exceed the end
             next_qubit = get_next_qubit(nodes, next)
             if c_gate == 'C': #check if only right
@@ -520,9 +523,9 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
                 p_gate1, _ = new_sucessors[0].split('.')
                 if p_gate1 == 'A' or p_gate1 == 'B':
                     new_loc = check_loc(nodes, placed + next_list, new_sucessors[0], graph, two_wire)
-                    if new_loc == 'u':
+                    if new_loc == 'u' and avoid_dir == 0:
                         avoid_dir = 'd'
-                    elif new_loc == 'd':
+                    elif new_loc == 'd' and avoid_dir == 0:
                         avoid_dir = 'u'
                 shapes, fronts, spaces, new, wire_targets, starts, ends = place_C(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
                 qubits - c_qubit, wire_target, wire_targets, right, next_qubit, qubit_record, start_p, end_p, starts, ends, avoild_points, avoid_dir)
@@ -594,7 +597,7 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
                 same_qubit = 1
             else:
                 active_qubits.remove(end_q[0])
-        elif len(newnew_sucessors) == 1:
+        elif len(newnew_sucessors) == 0:
             end_q = detec_end2(nextnext, nodes)
             active_qubits.remove(end_q[0])
             active_qubits.remove(end_q[1])
@@ -1294,12 +1297,14 @@ def check_valid_start_end(start, end):
             if abs(start[i + 1][0] - start[i][0]) < 2:
                 return 0
     temp_end = []
+    end_index = []
     for i in range(len(end)):
         if end[i] != []:
             temp_end.append(end[i])
+            end_index.append(i)
     if len(temp_end) != 0:
         for i in range(len(temp_end) - 1):
-            if abs(temp_end[i + 1][0] - temp_end[i][0]) < 2:
+            if temp_end[i + 1][0] - temp_end[i][0] < 2 * (end_index[i + 1] - end_index[i]): #why abs?
                 return 0
     return 1
 

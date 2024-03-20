@@ -12,8 +12,8 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 14
-rows = 41
+qubits = 15
+rows = 45
 flip = False
 reduce_measuremnts = 0 #set the number of measurements as objective
 first_loc = 'm'
@@ -35,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qaoa14.txt') as f:
+with open('Benchmarks/hwea15.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -287,17 +287,18 @@ uti0, use0 = cal_utilization2(dense_map, rows)
 # if wire_remove:
 #     new_map = remove_wire(dense_map, qubits, remove_single, remove_y)
 #     remove_leaves_wire(qubits, new_map)
-new_map = new_eliminate_redundant(dense_map, qubits)
 # newnew_map = convert_new_map(dense_map)
 # n_map = np.array(newnew_map)
 # np.savetxt("example/qaoa26el_111b.csv", n_map, fmt = '%s',delimiter=",")
 if wire_remove:
-    new_map = remove_wire(dense_map, qubits, remove_single, remove_y)
+    new_map = new_eliminate_redundant(dense_map, qubits)
+    # new_map = remove_leaves_wire(dense_map, qubits)
+    new_map = remove_wire(new_map, qubits, remove_single, remove_y)
     new_map = new_eliminate_redundant(new_map, qubits)
 uti0, use0 = cal_utilization2(new_map, rows)
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
-np.savetxt("example/qaoa14el_111.csv", n_map, fmt = '%s',delimiter=",")
+# np.savetxt("example/bv15el_111.csv", n_map, fmt = '%s',delimiter=",")
 # file = open("example/hlf27el.csv", "r")
 # new_map = list(csv.reader(file, delimiter=","))
 # file.close()
@@ -309,6 +310,6 @@ if reduce_measuremnts:
     reduced = "m_count"
 else:
     reduced = "depth"
-for i in range(12, 13):
+for i in range(10, 11):
     file_name = "./results/qaoa8_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced + ".txt"
     DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts, QAOA)

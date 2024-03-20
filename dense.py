@@ -1002,3 +1002,49 @@ def remove_leaves_wire(qubits, new_map):
         for j in range(back_z):
             new_map[i].pop(-1)
     print('g')
+
+def remove_leaves_wire(map, qubits):
+    new_map = copy.deepcopy(map)
+    two_qubit_gate = []
+    for i in range(qubits - 1):
+        temp = []
+        indx = 0
+        while indx < len(new_map[i]):
+            if new_map[i*2 + 1][indx] != 'Z':
+                if new_map[i*2 + 1][indx + 1] != 'Z':
+                    temp.append(indx + 1)
+                    indx += 1
+                else:
+                    temp.append(indx)
+            indx += 1
+        two_qubit_gate.append(temp)
+    #prune outside the DAG
+    front = [-1] * qubits
+    back = [-1] * qubits
+    front[0] = two_qubit_gate[0][0]
+    back[0] = two_qubit_gate[0][-1]
+    front[-1] = two_qubit_gate[-1][0]
+    back[-1] = two_qubit_gate[-1][-1]
+    for i in range(1, qubits - 1):
+        front[i] = min(two_qubit_gate[i -1][0], two_qubit_gate[i][0])
+        back[i] = max(two_qubit_gate[i - 1][-1], two_qubit_gate[i][-1])
+    for i in range(qubits):
+        indx = 0
+        end = 1
+        while end != front[i]: #remove the front X
+            if (new_map[i * 2][end - 1] == new_map[i * 2][end] == 'X'):
+                new_map[i * 2].pop(end - 1)
+                new_map[i * 2].pop(end - 1)
+                new_map[i * 2].insert(0, 'Z')
+                new_map[i * 2].insert(0, 'Z')
+            end = end + 1
+        end = back[i] + 2
+        while end != len(new_map[i]) - 2:  # remove the back X
+            if (new_map[i * 2][end - 1] == new_map[i * 2][end] == 'X'):
+                new_map[i * 2].pop(end - 1)
+                new_map[i * 2].pop(end - 1)
+                new_map[i * 2].append('Z')
+                new_map[i * 2].append('Z')
+            else:
+                end = end + 1
+    return new_map

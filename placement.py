@@ -171,9 +171,9 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if avoid_dir != 'u' and (base[0] == 0) or \
+        if avoid_dir != 'u' and ((base[0] == 0) or \
             (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0 and ((base[0] < 3 and p_row + 3 - base[0] + extra_qubits * 2 <= rows)
-            or (base[0] >= 3  and base[0] - 3 >= up_qubits * 2))): #first case: on top
+            or (base[0] >= 3  and base[0] - 3 >= up_qubits * 2)))): #first case: on top
             if (base[0] == 0 and len(p_shape) + 3 + extra_qubits * 2 > rows) or (restricted and new_qubit == 0 and abs(base[0] - 3 -qubit_row) > restrict_max)\
                     or (restricted and new_qubit == 0 and abs(base[0] - 1 - qubit_row2) > restrict_max):
                 return shapes, fronts, spaces, new, wire_targets, starts, ends
@@ -300,9 +300,9 @@ def place_B(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if avoid_dir != 'd' and (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0\
+        if avoid_dir != 'd' and ((base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0\
             and ((base[0] + 4 >= len(p_shape) and p_row + base[0] + 4 - len(p_shape) + extra_qubits * 2 <= rows) \
-                 or (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2))): #first case: on bot
+                 or (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2)))): #first case: on bot
             if (base[0] == len(p_shape) - 1 and len(p_shape) + 3 + extra_qubits * 2 > rows) or (restricted and new_qubit == 0 and abs(base[0] + 3 -qubit_row) > restrict_max)\
                     or (restricted and new_qubit == 0 and abs(base[0] + 1 - qubit_row2) > restrict_max):
                 return shapes, fronts, spaces, new, wire_targets, starts, ends
@@ -560,9 +560,9 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if avoid_dir != 'u' and (base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
+        if avoid_dir != 'u' and ((base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
             and ((base[0] < 3 and p_row + 3 - base[0] + extra_qubits * 2 <= rows) or \
-                 (base[0] >= 3 and base[0] - 3 >= up_qubits * 2 and p_shape[base[0] - 3][base[1]] == 0))):  # first case: on top
+                 (base[0] >= 3 and base[0] - 3 >= up_qubits * 2 and p_shape[base[0] - 3][base[1]] == 0)))):  # first case: on top
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == 0) or (restricted and new_qubit == 0 and abs(base[0] - 3 -qubit_row) > restrict_max)\
                     or (restricted and new_qubit == 0 and abs(base[0] - 1 - qubit_row2) > restrict_max):
                 return shapes, fronts, spaces, new, wire_targets, starts, ends
@@ -682,9 +682,9 @@ def place_A(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces, extr
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if avoid_dir != 'd' and (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
+        if avoid_dir != 'd' and ((base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
             ((base[0] + 4 >= len(p_shape) and p_row +base[0] + 4 - len(p_shape) + extra_qubits * 2 <= rows) or \
-             (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2 and p_shape[base[0] + 3][base[1]] == 0))):  # first case: on bot
+             (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2 and p_shape[base[0] + 3][base[1]] == 0)))):  # first case: on bot
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == len(p_shape) - 1) or (restricted and new_qubit == 0 and abs(base[0] + 3 - qubit_row) > restrict_max)\
                     or (restricted and new_qubit == 0 and abs(base[0] + 1 - qubit_row2) > restrict_max):
                 return shapes, fronts, spaces, new, wire_targets, starts, ends
@@ -814,9 +814,9 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if avoid_dir != 'u' and (base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
+        if avoid_dir != 'u' and ((base[0] == 0) or (p_shape[base[0] - 1][base[1] - 1] == 0 and p_shape[base[0] - 1][base[1]] == 0\
             and ((base[0] < 3 and p_row + 3 - base[0] + extra_qubits * 2 <= rows) or \
-                 (base[0] >= 3 and base[0] - 3 >= up_qubits * 2 and p_shape[base[0] - 3][base[1]] == 0))):  # first case: on top
+                 (base[0] >= 3 and base[0] - 3 >= up_qubits * 2 and p_shape[base[0] - 3][base[1]] == 0)))):  # first case: on top
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == 0) or (restricted and new_qubit == 0 and abs(base[0] - 3 -qubit_row) > restrict_max)\
                     or (restricted and new_qubit == 0 and abs(base[0] - 1 - qubit_row2) > restrict_max):
                 return shapes, fronts, spaces, new, wire_targets, starts, ends
@@ -945,9 +945,9 @@ def place_A_QAOA(p_shape, base, loc, rows, p_row, front, shapes, fronts, spaces,
             spaces.append(space)
             starts.append(new_start_p1)
             ends.append(new_end_p1)
-        if avoid_dir != 'd' and (base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
+        if avoid_dir != 'd' and ((base[0] == len(p_shape) - 1) or (p_shape[base[0] + 1][base[1] - 1] == 0 and p_shape[base[0] + 1][base[1]] == 0 and \
             ((base[0] + 4 >= len(p_shape) and p_row +base[0] + 4 - len(p_shape) + extra_qubits * 2 <= rows) or \
-             (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2 and p_shape[base[0] + 3][base[1]] == 0))):  # first case: on bot
+             (base[0] + 4 < len(p_shape) and len(p_shape) - base[0] - 4 >= down_qubit * 2 and p_shape[base[0] + 3][base[1]] == 0)))):  # first case: on bot
             if (len(p_shape) + 3 + extra_qubits * 2 > rows and base[0] == len(p_shape) - 1) or (restricted and new_qubit == 0 and abs(base[0] + 3 - qubit_row) > restrict_max)\
                     or (restricted and new_qubit == 0 and abs(base[0] + 1 - qubit_row2) > restrict_max):
                 return shapes, fronts, spaces, new, wire_targets, starts, ends
