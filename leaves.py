@@ -957,7 +957,7 @@ def check_valid(rows, depths, spaces, keep):
     for i in range(len(row_collect_num)):
         # if row_collect[i] == row_limit:
         #     keep_more = 2 * keep
-        keep_more = keep
+        keep_more = keep * 3
         if len(row_collect_num[i]) > keep_more:
             c_depths = []
             c_spaces = []

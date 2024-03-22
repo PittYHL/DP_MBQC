@@ -310,6 +310,6 @@ if reduce_measuremnts:
     reduced = "m_count"
 else:
     reduced = "depth"
-for i in range(6, 22, 2):
+for i in range(8, 22, 2):
     file_name = "./results/qaoa6_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced
     DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts, QAOA)

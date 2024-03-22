@@ -42,7 +42,8 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
         valid_table, valid_shapes = pick_shapes_count(table, shapes, new_wire, ranked_wires)
         # valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
     else:
-        valid_table, valid_shapes = pick_shapes(table, shapes)
+        # valid_table, valid_shapes = pick_shapes(table, shapes)
+        valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
 
     print("depths: ", depths)
     print("original wire: ", original_wire)

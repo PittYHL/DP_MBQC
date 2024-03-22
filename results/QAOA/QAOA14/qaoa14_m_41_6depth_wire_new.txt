@@ -1,0 +1,5 @@
+depths: [171, 169, 162, 162]
+original wire: 790
+ranked depths: [162, 169, 171]
+ranked wires: [770, 772, 788, 790]
+new wire: [[770, 772], [788], [790]]
