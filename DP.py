@@ -13,7 +13,7 @@ restrict = 1 #restrict C be in one row
 from iterations import keep_placing
 
 # keep = 10
-final_keep = 5 #number subcircuits kept for leaves
+final_keep = 4 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
 def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_measuremnts, QAOA):
@@ -40,6 +40,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     wires, ranked_depth, ranked_wires = rank_depth(new_wire, depths)  # rank the depths and associated with wire
     if reduce_measuremnts:
         valid_table, valid_shapes = pick_shapes_count(table, shapes, new_wire, ranked_wires)
+        # valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
     else:
         valid_table, valid_shapes = pick_shapes(table, shapes)
 
@@ -48,11 +49,19 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     print("ranked depths: ", ranked_depth)
     print("ranked wires: ", ranked_wires)
     print("new wire: ", wires)
-    n_map = convert_new_map2(valid_shapes[-1])
-    n_map = np.array(n_map)
-    np.savetxt("example/bv15_core.csv", n_map, fmt='%s', delimiter=",")
-    print(valid_table[-1]['starts'])
-    print(valid_table[-1]['ends'])
+    new_file = file_name + "_wire.txt"
+    f = open(new_file, "w")
+    f.write("depths: " + str(depths))
+    f.write('\n')
+    f.write("original wire: " + str(original_wire))
+    f.write('\n')
+    f.write("ranked depths: " + str(ranked_depth))
+    f.write('\n')
+    f.write("ranked wires: " + str(ranked_wires))
+    f.write('\n')
+    f.write("new wire: " + str(wires))
+    f.close()
+    file_name = file_name + ".txt"
 
     final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
     final_shapes, min_depth = sort_final_shapes(final_shapes)
@@ -61,7 +70,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     print('original measuremnts: ', original_measurements)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
-    # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
+    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')
@@ -1417,6 +1426,53 @@ def pick_shapes(table, shapes):
         valid_shapes.append(shapes[i])
     return valid_table, valid_shapes
 
+def pick_shapes2(table, shapes, wires, ranked_wires):
+    widths = []
+    depths = []
+    spaces = []
+    valid_table = []
+    valid_shapes = []
+    for i in range(len(table)):
+        widths.append(table[i]['row'])
+        depths.append(table[i]['D'])
+        spaces.append(table[i]['S'])
+    #for each widh pick the best
+    num_width = list(set(widths))
+    num_width.sort()
+    indexes = []
+    for i in range(len(num_width)):
+        temp_depth = []
+        temp_wires = []
+        chosen = []
+        for j in range(len(widths)):
+            if num_width[i] == widths[j]:
+                temp_depth.append(depths[j])
+                temp_wires.append(wires[j])
+                chosen.append(j)
+        min_depth = min(temp_depth)
+        min_depth_spaces = []
+        next_chosen = []
+        for j in range(len(temp_depth)):
+            if temp_depth[j] == min_depth:
+                min_depth_spaces.append(temp_wires[j])
+                next_chosen.append(chosen[j])
+        indexes.append(next_chosen[min_depth_spaces.index(max(min_depth_spaces))])
+    remove_list = []
+    #remove the width with the same depth, but wider
+    for i in range(1, len(indexes)):
+        if depths[indexes[i - 1]] <= depths[indexes[i]]:
+            remove_list.append(i)
+    remove_list.sort(reverse=True)
+    for i in remove_list:
+        indexes.pop(i)
+    while len(indexes) > final_keep:
+        remove = random.randint(1, len(indexes) - 2)
+        indexes.pop(remove)
+    for i in indexes:
+        valid_table.append(table[i])
+        valid_shapes.append(shapes[i])
+    return valid_table, valid_shapes
+
 def pick_shapes_count(table, shapes, wires, ranked_wires):
     best_wires = []
     widths = []
@@ -1424,25 +1480,38 @@ def pick_shapes_count(table, shapes, wires, ranked_wires):
     indexes = []
     valid_table = []
     valid_shapes = []
+    best_wire_rank = 0 #used to keep track of the rank of the best wire
     for i in range(len(wires)):
         if wires[i] == ranked_wires[0]:
             indexes.append(i)
-            widths.append(table[i]['row'])
             depths.append(table[i]['D'])
             best_wires.append(ranked_wires[0])
-    if len(best_wires) <= final_keep:
-        for i in indexes:
-            valid_table.append(table[i])
-            valid_shapes.append(shapes[i])
+    if len(shapes) <= final_keep:
+        valid_table = copy.deepcopy(table)
+        valid_shapes = copy.deepcopy(shapes)
     else:
         valid_indexes = []
         copy_depths = copy.deepcopy(depths)
         copy_depths.sort(reverse=True)
-        while len(valid_indexes) <= final_keep:
+        while len(valid_indexes) <= final_keep and len(indexes) != 0:
             best_depth = copy_depths.pop(0)
             index = depths.index(best_depth)
             depths.pop(index)
             valid_indexes.append(indexes.pop(index))
+        while len(best_wires) <= final_keep:
+            best_wire_rank = best_wire_rank + 1
+            for i in range(len(wires)):
+                if wires[i] == ranked_wires[best_wire_rank]:
+                    indexes.append(i)
+                    depths.append(table[i]['D'])
+                    best_wires.append(ranked_wires[best_wire_rank])
+            copy_depths = copy.deepcopy(depths)
+            copy_depths.sort(reverse=True)
+            while len(valid_indexes) <= final_keep and len(indexes) != 0:
+                best_depth = copy_depths.pop(0)
+                index = depths.index(best_depth)
+                depths.pop(index)
+                valid_indexes.append(indexes.pop(index))
         for i in valid_indexes:
             valid_table.append(table[i])
             valid_shapes.append(shapes[i])

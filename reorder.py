@@ -12,10 +12,10 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 26
-rows = 77
+qubits = 6
+rows = 17
 flip = False
-reduce_measuremnts = 0 #set the number of measurements as objective
+reduce_measuremnts = 1 #set the number of measurements as objective
 first_loc = 'm'
 file_name = "results/hwea15_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
 QAOA = 0
@@ -35,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qaoa26.txt') as f:
+with open('Benchmarks/qaoa6.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -310,6 +310,6 @@ if reduce_measuremnts:
     reduced = "m_count"
 else:
     reduced = "depth"
-for i in range(10, 11):
-    file_name = "./results/qaoa8_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced + ".txt"
+for i in range(6, 22, 2):
+    file_name = "./results/qaoa6_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced
     DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts, QAOA)

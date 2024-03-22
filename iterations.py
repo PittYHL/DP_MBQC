@@ -243,11 +243,15 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
         if len(front_shapes[i + 1]) == 0:
             print('front fail')
             return [], [], [], []
+        next_start = []
+        if i != len(starts) - 1:
+            for j in range(i + 1, len(starts)):
+                next_start.append(start_rank[j])
         front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = fit_front(front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1],
-                                                                                                depth_list, previous_shape, flip, to_keep)
+                                                                                                depth_list, previous_shape, flip, next_start, starts, to_keep)
     if len(depth_list) > 1:
         front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list = fit_front(
-            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, previous_shape, flip, 1)
+            front_shapes[i + 1], front_leaves[i + 1], front_locs[i + 1], depth_list, previous_shape, flip, [], starts, 1)
     #place the back
     back_shapes[0].append(copy.deepcopy(original_shape))
     back_leaves[0].append([])
@@ -309,8 +313,27 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
         final_space.append(temp_space)
     return final_shapes, final_depth, final_space, single_depths
 
-def fit_front(shapes, leaves, locs, depth_list, previous_shape, flip, longest = longest): #choose the best front that fit the previous shape
+def fit_front(shapes, leaves, locs, depth_list, previous_shape, flip, next_start, starts, longest = longest): #choose the best front that fit the previous shape
     new_shapes = []
+    invalid_shape = []
+    if next_start != []:
+        for i in range(len(shapes)):
+            for j in range(len(next_start)):
+                block = 0
+                for k in range(starts[next_start[j]][1]):
+                    if shapes[i][starts[next_start[j]][0]][k] != 0:
+                        block = 1
+                        break
+                available_locs, available_dirs = check_start(shapes[i], starts[next_start[j]])
+                if available_locs == [] or block:
+                    invalid_shape.append(i)
+                    break
+        invalid_shape.sort(reverse=True)
+        for i in invalid_shape:
+            shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
+            depth_list.pop(i)
     if flip:
         temp_shapes = flip_shape(shapes)
     else:
