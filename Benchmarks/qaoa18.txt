@@ -1,0 +1,63 @@
+H 0 
+H 1 
+H 2 
+H 3 
+H 4 
+H 5 
+H 6 
+H 7 
+H 8 
+H 9 
+H 10 
+H 11 
+H 12 
+H 13 
+H 14 
+H 15 
+H 16 
+H 17 
+ZZ 3 7
+ZZ 3 1
+ZZ 3 11
+ZZ 7 0
+ZZ 7 6
+ZZ 14 16
+ZZ 14 4
+ZZ 14 10
+ZZ 16 9
+ZZ 16 10
+ZZ 5 13
+ZZ 5 2
+ZZ 5 12
+ZZ 13 2
+ZZ 13 4
+ZZ 0 8
+ZZ 0 17
+ZZ 8 6
+ZZ 8 4
+ZZ 2 12
+ZZ 1 15
+ZZ 1 17
+ZZ 17 15
+ZZ 15 9
+ZZ 6 9
+ZZ 12 11
+ZZ 10 11
+RX 0 
+RX 1 
+RX 2 
+RX 3 
+RX 4 
+RX 5 
+RX 6 
+RX 7 
+RX 8 
+RX 9 
+RX 10 
+RX 11 
+RX 12 
+RX 13 
+RX 14 
+RX 15 
+RX 16 
+RX 17 

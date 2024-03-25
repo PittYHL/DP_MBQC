@@ -31,6 +31,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
             else:
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map, QAOA)
+    total_components = count_component(nodes)
     original_wire = sum(W_len)
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
     print("finished placing core")
@@ -1651,3 +1652,14 @@ def check_qubit_limit(q0, q1, active_qubits, qubits):
                     break
             higher_qubits += 1 #the qubit gap to the ended
     return lower_qubits, higher_qubits
+
+def count_component(nodes):
+    recorded = []
+    num = 0
+    for i in range(len(nodes)):
+        for j in range(len(nodes[i])):
+            next = nodes[i][j]
+            c_gate, gate_index = next.split('.')
+            if c_gate == 'W':
+                continue
+            elif c_gate == 'C':
