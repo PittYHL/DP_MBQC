@@ -1,0 +1,59 @@
+A 0 
+A 1 
+A 2 
+A 3 
+A 4 
+A 5 
+A 6 
+A 7 
+A 8 
+A 9 
+A 10 
+A 11 
+A 12 
+A 13 
+A 14 
+A 15 
+A 16 
+A 17 
+A 18 
+A 19 
+CNOT 0 1
+CNOT 1 2
+CNOT 2 3
+CNOT 3 4
+CNOT 4 5
+CNOT 5 6
+CNOT 6 7
+CNOT 7 8
+CNOT 8 9
+CNOT 9 10
+CNOT 10 11
+CNOT 11 12
+CNOT 12 13
+CNOT 13 14
+CNOT 14 15
+CNOT 15 16
+CNOT 16 17
+CNOT 17 18
+CNOT 18 19
+A 0 
+A 1 
+A 2 
+A 3 
+A 4 
+A 5 
+A 6 
+A 7 
+A 8 
+A 9 
+A 10 
+A 11 
+A 12 
+A 13 
+A 14 
+A 15 
+A 16 
+A 17 
+A 18 
+A 19 

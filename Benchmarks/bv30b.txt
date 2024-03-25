@@ -1,0 +1,90 @@
+H 0 
+H 1 
+H 2 
+H 3 
+H 4 
+H 5 
+H 6 
+H 7 
+H 8 
+H 9 
+H 10 
+H 11 
+H 12 
+H 13 
+H 14 
+H 15 
+H 16 
+H 17 
+H 18 
+H 19 
+H 20 
+H 21 
+H 22 
+H 23 
+H 24 
+H 25 
+H 26 
+H 27
+H 28
+H 29
+Z 29 
+CNOT 0 29 
+CNOT 1 29 
+CNOT 2 29 
+CNOT 3 29 
+CNOT 4 29 
+CNOT 5 29 
+CNOT 6 29 
+CNOT 7 29 
+CNOT 8 29 
+CNOT 9 29 
+CNOT 10 29 
+CNOT 11 29 
+CNOT 12 29 
+CNOT 13 29 
+CNOT 14 29 
+CNOT 15 29 
+CNOT 16 29 
+CNOT 17 29 
+CNOT 18 29 
+CNOT 19 29 
+CNOT 20 29 
+CNOT 21 29 
+CNOT 22 29 
+CNOT 23 29 
+CNOT 24 29 
+CNOT 25 29 
+CNOT 26 29 
+CNOT 27 29 
+CNOT 28 29 
+H 0 
+H 1
+H 2 
+H 3 
+H 4
+H 5 
+H 6 
+H 7
+H 8 
+H 9 
+H 10
+H 11 
+H 12
+H 13 
+H 14
+H 15 
+H 16
+H 17 
+H 18 
+H 19 
+H 20 
+H 21 
+H 22 
+H 23 
+H 24 
+H 25 
+H 26 
+H 27 
+H 28
+H 29  

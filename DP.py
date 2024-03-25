@@ -228,12 +228,12 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         new_sucessors = list(graph.successors(next))
         loc = check_loc(nodes, placed, next, graph, two_wire)
         print(next)
-        print(len(shape[-1]))
+        # print(len(shape[-1]))
         # if index %20 == 0:
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        if next == 'C.21':
+        if next == 'B.279':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
@@ -598,14 +598,14 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
     new_preds = preds + not_placed_preds
     while nextnext != 0:
         next = nextnext
-        # print(next)
+        print(next)
+        print(len(shapes))
+        if next == 'B.356':
+            print('g')
         newnew_sucessors = list(graph.successors(nextnext))
         if len(newnew_sucessors) == 1:
             end, end_q = detec_end(nextnext, newnew_sucessors[0], nodes)
-            if end == 0:
-                nextnext = new_sucessors[0]
-                same_qubit = 1
-            else:
+            if end != 0:
                 active_qubits.remove(end_q[0])
         elif len(newnew_sucessors) == 0:
             end_q = detec_end2(nextnext, nodes)
@@ -613,6 +613,7 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
             active_qubits.remove(end_q[1])
         shapes, fronts, spaces, successors, nextnext, parents, same_qubit, wire_targets, starts, ends = fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents,
             nodes, same_qubit, wire_targets, starts, ends, end_q, rows)
+        print(len(shapes))
         if len(newnew_sucessors) == 1:  # detect end point for forward
             p_gate1, _ = newnew_sucessors[0].split('.')
             if p_gate1 == 'C':

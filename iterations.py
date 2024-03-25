@@ -277,10 +277,14 @@ def place_next(shape, starts, ends, all_paths, max_first, first, last, all_leave
                     if depth < shortest:
                         shortest = depth
         if len(depth_list) > to_keep:
+            next_end = []
+            if i != len(ends) - 1:
+                for j in range(i + 1, len(ends)):
+                    next_end.append(end_rank[j])
             back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = remove_short_end(back_shapes[i + 1],
                                                                                                     back_leaves[i + 1],
                                                                                                     back_locs[i + 1],
-                                                                                                    depth_list, to_keep)
+                                                                                                    depth_list, next_end, ends, to_keep)
         if len(back_shapes[i + 1]) == 0:
             print('back fail')
             return [], [], [], []

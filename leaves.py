@@ -349,14 +349,18 @@ def place_final_shape(shape, starts, ends, all_paths, max_first, first, last, al
                     if depth < shortest:
                         shortest = depth
         if len(depth_list) > to_keep:
-            back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, to_keep)
+            next_end = []
+            if i != len(ends) - 1:
+                for j in range(i + 1, len(ends)):
+                    next_end.append(end_rank[j])
+            back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, next_end, ends, to_keep)
         if len(back_shapes[i + 1]) == 0:
             print('back fail')
             return [], [], [], [], [], [], [], final_shapes
     final_keeps = min(keep, final_keep)
     if len(depth_list) > final_keeps:
         back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list = \
-            remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, final_keeps)
+            remove_short_end(back_shapes[i + 1], back_leaves[i + 1], back_locs[i + 1], depth_list, [], ends, final_keeps)
     new_front_leaves, new_front_locs, new_back_leaves, new_back_locs = shuffle_locs(start_rank, front_leaves[-1], front_locs[-1], end_rank, back_leaves[-1], back_locs[-1]) #used to shuffle back the correct position
     shortest_depth, shortest_shapes = count_shortest(original_shape, all_paths, front_shapes[-1], new_front_leaves, new_front_locs, starts, first,
                                     back_shapes[-1], new_back_leaves, new_back_locs, ends, last)
@@ -572,7 +576,7 @@ def remove_short_front(shapes, leaves, locs, depth_list, longest = longest):
             depth_list.pop(i)
     return shapes, leaves, locs, depth_list
 
-def remove_short_end(shapes, leaves, locs, depth_list, longest = longest):
+def remove_short_end(shapes, leaves, locs, depth_list, next_end, ends, longest = longest):
     # spaces = []
     # widths = []
     # for i in range(len(shapes)):
@@ -591,6 +595,25 @@ def remove_short_end(shapes, leaves, locs, depth_list, longest = longest):
     #     new_locs.append(locs[i])
     #     new_depth_list.append(depth_list[i])
     # return new_shapes, new_leaves, new_locs, new_depth_list
+    invalid_shape = []
+    if next_end != []:
+        for i in range(len(shapes)):
+            for j in range(len(next_end)):
+                block = 0
+                for k in range(ends[next_end[j]][1] + 1, len(shapes[0][0])):
+                    if shapes[i][ends[next_end[j]][0]][k] != 0:
+                        block = 1
+                        break
+                available_locs, available_dirs = check_end(shapes[i], ends[next_end[j]])
+                if available_locs == [] or block:
+                    invalid_shape.append(i)
+                    break
+        invalid_shape.sort(reverse=True)
+        for i in invalid_shape:
+            shapes.pop(i)
+            leaves.pop(i)
+            locs.pop(i)
+            depth_list.pop(i)
     if len(list(set(depth_list))) == 1:
         indexes = []
         for i in range(len(depth_list)):
