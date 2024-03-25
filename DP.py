@@ -71,7 +71,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     print('original measuremnts: ', original_measurements)
     print("original depth: ", len(new_map[0]))
     print("Optimized depth: ", min_depth)
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
+    # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')
@@ -233,7 +233,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        if next == 'B.114':
+        if next == 'C.21':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
@@ -612,7 +612,7 @@ def place_next(next, table, shape, valid, p_index, rows, new_sucessors, qubits, 
             active_qubits.remove(end_q[0])
             active_qubits.remove(end_q[1])
         shapes, fronts, spaces, successors, nextnext, parents, same_qubit, wire_targets, starts, ends = fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents,
-            nodes, same_qubit, wire_targets, starts, ends, end_q)
+            nodes, same_qubit, wire_targets, starts, ends, end_q, rows)
         if len(newnew_sucessors) == 1:  # detect end point for forward
             p_gate1, _ = newnew_sucessors[0].split('.')
             if p_gate1 == 'C':
@@ -825,7 +825,7 @@ def rank_result(row_collect_num, c_depths, c_spaces, keep_more):
     selected.sort()
     return selected
 
-def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents, nodes, same_qubit, wire_targets, starts, ends, end_q):
+def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors, parents, nodes, same_qubit, wire_targets, starts, ends, end_q, rows):
     locs = []
     new_parents = []
     new_wire_target = []
@@ -836,9 +836,9 @@ def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors
         if successors[i] == nextnext:
             locs.append(i)
     if gate == 'A':
-        shapes, fronts, spaces, valid, starts, ends = fill_A(shapes, fronts, spaces, locs, same_qubit, starts, ends)
+        shapes, fronts, spaces, valid, starts, ends = fill_A(shapes, fronts, spaces, locs, same_qubit, starts, ends, wire_targets, rows)
     elif gate == 'B':
-        shapes, fronts, spaces, valid, starts, ends = fill_B(shapes, fronts, spaces, locs, same_qubit, starts, ends)
+        shapes, fronts, spaces, valid, starts, ends = fill_B(shapes, fronts, spaces, locs, same_qubit, starts, ends, wire_targets, rows)
     same_qubit = 0 #if the next two-qubit gate has the same qubits
     if len(newnew_sucessors) == 1: #remove one front
         first_qubit = 0
