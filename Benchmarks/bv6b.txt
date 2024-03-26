@@ -1,0 +1,18 @@
+H 0
+H 1
+H 2
+H 3
+H 4
+H 5
+Z 5
+CNOT 0 5
+CNOT 1 5
+CNOT 2 5
+CNOT 3 5
+CNOT 4 5
+H 0
+H 1
+H 2
+H 3
+H 4
+H 5

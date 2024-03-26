@@ -1,0 +1,21 @@
+H 0 
+H 1 
+H 2 
+H 3 
+H 4 
+H 5 
+ZZ 0 1
+ZZ 0 4
+ZZ 0 5
+ZZ 1 2
+ZZ 1 4
+ZZ 2 3
+ZZ 2 5
+ZZ 4 3
+ZZ 3 5
+RX 0 
+RX 1 
+RX 2 
+RX 3 
+RX 4 
+RX 5 
