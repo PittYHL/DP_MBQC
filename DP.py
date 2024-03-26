@@ -16,6 +16,7 @@ from iterations import keep_placing
 final_keep = 4 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
+count_c = 0
 def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_measuremnts, QAOA):
     new_map = []
     original_measurements = 0
@@ -32,6 +33,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map, QAOA)
     total_components = count_component(nodes)
+    print('components: ', total_components)
     original_wire = sum(W_len)
     table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
     print("finished placing core")
@@ -1657,9 +1659,26 @@ def count_component(nodes):
     recorded = []
     num = 0
     for i in range(len(nodes)):
-        for j in range(len(nodes[i])):
+        j = 0
+        found_c = 0
+        while j < len(nodes[i]):
             next = nodes[i][j]
             c_gate, gate_index = next.split('.')
             if c_gate == 'W':
-                continue
-            elif c_gate == 'C':
+                j += 1
+            elif count_c and c_gate == 'C':
+                next = nodes[i][j + 1]
+                c_gate, gate_index = next.split('.')
+                while(c_gate == 'C'):
+                    j = j + 1
+                    next = nodes[i][j + 1]
+                    c_gate, gate_index = next.split('.')
+                num = num + 1
+                j = j + 1
+            elif next not in recorded and c_gate != 'C':
+                num = num + 1
+                j = j + 1
+                recorded.append(next)
+            else:
+                j = j + 1
+    return num + len(nodes) * 2
