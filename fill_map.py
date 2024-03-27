@@ -1,7 +1,7 @@
 from placement import *
 import math
 
-special_W = 1
+special_W = 0
 
 def fill_A(shapes, fronts, spaces, locs, same_qubit, starts, ends, wire_targets, rows):
     valid = []  # valid shpae after fill A
