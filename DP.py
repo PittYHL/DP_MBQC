@@ -67,13 +67,13 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     f.close()
     file_name = file_name + ".txt"
 
-    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
-    final_shapes, min_depth = sort_final_shapes(final_shapes)
-    new_wire = count_wire(valid_shapes)
-    # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
-    print('original measuremnts: ', original_measurements)
-    print("original depth: ", len(new_map[0]))
-    print("Optimized depth: ", min_depth)
+    # final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
+    # final_shapes, min_depth = sort_final_shapes(final_shapes)
+    # new_wire = count_wire(valid_shapes)
+    # # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    # print('original measuremnts: ', original_measurements)
+    # print("original depth: ", len(new_map[0]))
+    # print("Optimized depth: ", min_depth)
     # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
@@ -236,7 +236,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        if next == 'B.279':
+        if next == 'A.79':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
@@ -1498,7 +1498,7 @@ def pick_shapes_count(table, shapes, wires, ranked_wires):
         copy_depths = copy.deepcopy(depths)
         copy_depths.sort(reverse=True)
         best_depth = copy_depths[0]
-        while max(depths) == best_depth and len(valid_indexes) < final_keep:
+        while len(depths) != 0 and max(depths) == best_depth and len(valid_indexes) < final_keep:
             index = depths.index(best_depth)
             depths.pop(index)
             valid_indexes.append(indexes.pop(index))
