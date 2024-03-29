@@ -236,7 +236,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         #     n_map = convert_new_map2(shape[-1][-1])
         #     n_map = np.array(n_map)
         #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
-        if next == 'A.79':
+        if next == 'A.18':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
                                W_len, placed, two_wire, only_right, qubit_record, keep, reduce_measuremnts, QAOA)  # place the next node
@@ -843,6 +843,9 @@ def fill_nextnext(shapes, fronts, spaces, successors, nextnext, newnew_sucessors
         shapes, fronts, spaces, valid, starts, ends = fill_A(shapes, fronts, spaces, locs, same_qubit, starts, ends, wire_targets, rows)
     elif gate == 'B':
         shapes, fronts, spaces, valid, starts, ends = fill_B(shapes, fronts, spaces, locs, same_qubit, starts, ends, wire_targets, rows)
+    elif gate == 'B1':
+        shapes, fronts, spaces, valid, starts, ends = fill_B1(shapes, fronts, spaces, locs, same_qubit, starts, ends,
+                                                             wire_targets, rows, nodes, nextnext)
     same_qubit = 0 #if the next two-qubit gate has the same qubits
     if len(newnew_sucessors) == 1: #remove one front
         first_qubit = 0
