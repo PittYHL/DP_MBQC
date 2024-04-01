@@ -16,7 +16,7 @@ from iterations import keep_placing
 final_keep = 4 #number subcircuits kept for leaves
 long = 100
 restricted  = 0
-count_c = 0
+count_c = 1
 def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_measuremnts, QAOA):
     new_map = []
     original_measurements = 0
@@ -34,47 +34,47 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map, QAOA)
     total_components = count_component(nodes)
     print('components: ', total_components)
-    original_wire = sum(W_len)
-    table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
-    print("finished placing core")
-    depths = show_depth(shapes)
-    middle_shapes = shapes[-1]
-    new_wire = count_wire(shapes)
-    wires, ranked_depth, ranked_wires = rank_depth(new_wire, depths)  # rank the depths and associated with wire
-    if reduce_measuremnts:
-        valid_table, valid_shapes = pick_shapes_count(table, shapes, new_wire, ranked_wires)
-        # valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
-    else:
-        # valid_table, valid_shapes = pick_shapes(table, shapes)
-        valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
-
-    print("depths: ", depths)
-    print("original wire: ", original_wire)
-    print("ranked depths: ", ranked_depth)
-    print("ranked wires: ", ranked_wires)
-    print("new wire: ", wires)
-    new_file = file_name + "_wire.txt"
-    f = open(new_file, "w")
-    f.write("depths: " + str(depths))
-    f.write('\n')
-    f.write("original wire: " + str(original_wire))
-    f.write('\n')
-    f.write("ranked depths: " + str(ranked_depth))
-    f.write('\n')
-    f.write("ranked wires: " + str(ranked_wires))
-    f.write('\n')
-    f.write("new wire: " + str(wires))
-    f.close()
-    file_name = file_name + ".txt"
-
-    final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
-    final_shapes, min_depth = sort_final_shapes(final_shapes)
-    new_wire = count_wire(valid_shapes)
-    # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
-    print('original measuremnts: ', original_measurements)
-    print("original depth: ", len(new_map[0]))
-    print("Optimized depth: ", min_depth)
-    keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
+    # original_wire = sum(W_len)
+    # table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
+    # print("finished placing core")
+    # depths = show_depth(shapes)
+    # middle_shapes = shapes[-1]
+    # new_wire = count_wire(shapes)
+    # wires, ranked_depth, ranked_wires = rank_depth(new_wire, depths)  # rank the depths and associated with wire
+    # if reduce_measuremnts:
+    #     valid_table, valid_shapes = pick_shapes_count(table, shapes, new_wire, ranked_wires)
+    #     # valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
+    # else:
+    #     # valid_table, valid_shapes = pick_shapes(table, shapes)
+    #     valid_table, valid_shapes = pick_shapes2(table, shapes, new_wire, ranked_wires)
+    #
+    # print("depths: ", depths)
+    # print("original wire: ", original_wire)
+    # print("ranked depths: ", ranked_depth)
+    # print("ranked wires: ", ranked_wires)
+    # print("new wire: ", wires)
+    # new_file = file_name + "_wire.txt"
+    # f = open(new_file, "w")
+    # f.write("depths: " + str(depths))
+    # f.write('\n')
+    # f.write("original wire: " + str(original_wire))
+    # f.write('\n')
+    # f.write("ranked depths: " + str(ranked_depth))
+    # f.write('\n')
+    # f.write("ranked wires: " + str(ranked_wires))
+    # f.write('\n')
+    # f.write("new wire: " + str(wires))
+    # f.close()
+    # file_name = file_name + ".txt"
+    #
+    # final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
+    # final_shapes, min_depth = sort_final_shapes(final_shapes)
+    # new_wire = count_wire(valid_shapes)
+    # # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    # print('original measuremnts: ', original_measurements)
+    # print("original depth: ", len(new_map[0]))
+    # print("Optimized depth: ", min_depth)
+    # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
     # print("number of final shapes: ", len(shapes))
     # combination(final_shapes, new_map)
     # print('g')
