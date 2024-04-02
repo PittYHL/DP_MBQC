@@ -1,0 +1,10 @@
+Original depth 198
+best depth 136
+Optimized 4 iterations depth: 490
+Individual widths are [136, 140, 139, 141]
+Optimized reduction 22.0
+Average shape 139.0
+Original 1000 198999
+Optimized 1000 117022.0
+Original wire 1019
+Final wire 749.0
