@@ -33,6 +33,7 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map, QAOA)
     total_components = count_component(nodes)
+    print('original measuremnts: ', original_measurements)
     print('components: ', total_components)
     # original_wire = sum(W_len)
     # table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
