@@ -32,8 +32,10 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
             else:
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map, QAOA)
+    average_v = cal_v(nodes, first, last)
     total_components = count_component(nodes)
     print('original measuremnts: ', original_measurements)
+    print('average V: ', average_v)
     print('components: ', total_components)
     # original_wire = sum(W_len)
     # table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
@@ -71,14 +73,11 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     # final_shapes = place_leaves(valid_table, valid_shapes, first, last, rows, first_loc, keep, hwea)
     # final_shapes, min_depth = sort_final_shapes(final_shapes)
     # new_wire = count_wire(valid_shapes)
-    # # valid_table, valid_shapes = sort_new_shapes(table, shapes, final_shapes)
+    #
     # print('original measuremnts: ', original_measurements)
     # print("original depth: ", len(new_map[0]))
     # print("Optimized depth: ", min_depth)
     # keep_placing(final_shapes, valid_table, valid_shapes, first, last, rows, flip, new_map, first_loc, len(new_map[0]), min_depth, file_name, keep, original_wire, hwea)
-    # print("number of final shapes: ", len(shapes))
-    # combination(final_shapes, new_map)
-    # print('g')
 
 def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA):
     # n_nodes = np.array(nodes)
@@ -1690,3 +1689,80 @@ def count_component(nodes):
             else:
                 j = j + 1
     return num + len(nodes) * 2
+
+def cal_v(nodes, first, last):
+    recorded = []
+    total_v = 0
+    num = 0
+    for i in range(len(nodes)):
+        j = 0
+        found_c = 0
+        while j < len(nodes[i]):
+            next = nodes[i][j]
+            c_gate, gate_index = next.split('.')
+            if c_gate == 'W':
+                j += 1
+            elif count_c and c_gate == 'C':
+                count = 1
+                next = nodes[i][j + 1]
+                c_gate, gate_index = next.split('.')
+                while(c_gate == 'C'):
+                    count += 1
+                    j = j + 1
+                    next = nodes[i][j + 1]
+                    c_gate, gate_index = next.split('.')
+                num = num + 1
+                if count == 1:
+                    total_v = total_v + 1
+                elif count == 2:
+                    total_v = total_v + 3
+                elif count == 3:
+                    total_v = total_v + 7
+                elif count == 4:
+                    total_v = total_v + 15
+                elif count == 5:
+                    total_v = total_v + 43
+                elif count == 6:
+                    total_v = total_v + 73
+                elif count == 7:
+                    total_v = total_v + 159
+                j = j + 1
+            elif next not in recorded and c_gate != 'C':
+                num = num + 1
+                j = j + 1
+                recorded.append(next)
+                total_v = total_v + 1
+            else:
+                j = j + 1
+    for count in first:
+        if count == 1:
+            total_v = total_v + 1
+        elif count == 2:
+            total_v = total_v + 3
+        elif count == 3:
+            total_v = total_v + 7
+        elif count == 4:
+            total_v = total_v + 15
+        elif count == 5:
+            total_v = total_v + 43
+        elif count == 6:
+            total_v = total_v + 73
+        elif count == 7:
+            total_v = total_v + 159
+    for count in last:
+        if count == 1:
+            total_v = total_v + 1
+        elif count == 2:
+            total_v = total_v + 3
+        elif count == 3:
+            total_v = total_v + 7
+        elif count == 4:
+            total_v = total_v + 15
+        elif count == 5:
+            total_v = total_v + 43
+        elif count == 6:
+            total_v = total_v + 73
+        elif count == 7:
+            total_v = total_v + 159
+    num = num + len(nodes) * 2
+    return total_v/num
