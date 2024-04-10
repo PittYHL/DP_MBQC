@@ -12,12 +12,12 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 26
-rows = 45
+qubits = 5
+rows = 12
 flip = False
 reduce_measuremnts = 0 #set the number of measurements as objective
 first_loc = 'u'
-file_name = "results/hwea15_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
+file_name = "results/qft15_" + first_loc + "_" + str(rows) + "_" + str(keep) + ".txt"
 QAOA = 0
 # force_right = False#force the second c to the right
 # special = 0#for special leaves
@@ -25,7 +25,7 @@ wire_remove = 1
 remove_single = 1 #for removing the single qubit gate
 remove_SWAP = 1
 # restricted = 0 #restrict the qubit locate
-remove_y = 1#for CNOT (QAOA)
+remove_y = 0#for CNOT (QAOA)
 # special_greedy = 0
 physical_gate = []
 tracker= []
@@ -35,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/qaoa26.txt') as f:
+with open('Benchmarks/hwea5.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -291,11 +291,11 @@ uti0, use0 = cal_utilization2(dense_map, rows)
 # n_map = np.array(newnew_map)
 # np.savetxt("example/qaoa26el_111b.csv", n_map, fmt = '%s',delimiter=",")
 if wire_remove:
-    new_map = remove_leaves_wire(dense_map, qubits)
-    new_map = remove_wire(new_map, qubits, remove_single, remove_y)
-    # new_map = new_eliminate_redundant(dense_map, qubits)
+    # new_map = remove_leaves_wire(dense_map, qubits)
     # new_map = remove_wire(new_map, qubits, remove_single, remove_y)
-    # new_map = new_eliminate_redundant(new_map, qubits)
+    new_map = new_eliminate_redundant(dense_map, qubits)
+    new_map = remove_wire(new_map, qubits, remove_single, remove_y)
+    new_map = new_eliminate_redundant(new_map, qubits)
 uti0, use0 = cal_utilization2(new_map, rows)
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
@@ -311,6 +311,6 @@ if reduce_measuremnts:
     reduced = "m_count"
 else:
     reduced = "depth"
-for i in range(4, 6, 2):
+for i in range(3, 5, 2):
     file_name = "./results/hwea15_" + first_loc + "_" + str(rows) + "_" + str(i) + reduced
     DP(new_map, qubits, rows, flip, first_loc, file_name, i, hwea, reduce_measuremnts, QAOA)

@@ -32,13 +32,14 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
             else:
                 new_map[-1].append(0)
     graph, nodes, W_len, first, last, A_loc, B_loc, C_loc = gen_index(new_map, QAOA)
-    average_v = cal_v(nodes, first, last)
+    average_v, average_a = cal_v(nodes, first, last, graph)
     total_components = count_component(nodes)
     print('original measuremnts: ', original_measurements)
-    print('average V: ', average_v)
+    print('average V and anchor: ', average_v, average_a)
     print('components: ', total_components)
-    # original_wire = sum(W_len)
-    # table, shapes = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
+    original_wire = sum(W_len)
+    table, shapes, total_W = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
+    print('average W: ', (total_W + sum(first))/(total_components - 1 - qubits))
     # print("finished placing core")
     # depths = show_depth(shapes)
     # middle_shapes = shapes[-1]
@@ -101,11 +102,11 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, red
     current = current_independent_node.pop(0)
     nodes_left.remove(current)
     inde_qubit_record[0] = get_qubit_record(current, nodes, [])
-    inde_table[0], inde_shape[0], inde_placed[0], onle_one_pre[1], nodes_left, inde_qubit_record[0] = \
+    inde_table[0], inde_shape[0], inde_placed[0], onle_one_pre[1], nodes_left, inde_qubit_record[0], total_W = \
         place_independent(current, graph, inde_qubit_record[0], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
                         current_independent_node, placed, keep, reduce_measuremnts, QAOA)
     if len(independet_node) == 1:
-        return inde_table[-1], inde_shape[-1]
+        return inde_table[-1], inde_shape[-1], total_W
     i = 0
     for i in range(1, len(independet_node)):
         current = current_independent_node.pop(0)
@@ -113,7 +114,7 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, red
         new_independent_node.remove(current)
         nodes_left.remove(current)
         inde_qubit_record[i] = get_qubit_record(current, nodes, [])
-        inde_table[i], inde_shape[i], new_placed, onle_one_pre[i + 1], nodes_left, inde_qubit_record[i] = \
+        inde_table[i], inde_shape[i], new_placed, onle_one_pre[i + 1], nodes_left, inde_qubit_record[i], total_W = \
             place_independent(current, graph, inde_qubit_record[i], rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
                               new_independent_node, [], keep, reduce_measuremnts, QAOA)
         inde_placed[i] = new_placed
@@ -141,10 +142,11 @@ def place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, red
         inde_table[i], inde_shape[i], inde_placed[i], onle_one_pre[i + 1], nodes_left, inde_qubit_record[i] = \
             place_combine([temp_table], [temp_shape], inde_qubit_record[i], graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
                               rest_independent_node, placed, keep, reduce_measuremnts, QAOA)
-    return inde_table[-1], inde_shape[-1]
+    return inde_table[-1], inde_shape[-1], total_W
 
 
 def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len, independent_node, placed, keep, reduce_measuremnts, QAOA):
+    total_W = 0
     index = 0
     onle_one_pre = [] #record node with only one predecessor placed
     placed.append(current)
@@ -227,15 +229,15 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
     if match_next_node:
         return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
     while next != "":
+        pred = list(graph.predecessors(next))
+        gate0, _ = next.split('.')
+        gate1, _ = pred[0].split('.')
+        if not (len(pred) == 1 and gate0 == 'C' and gate1 == 'C'):
+            total_W = total_W + count_width(table[-1])
         c_qubit = find_qubits(nodes, placed, next)
         new_sucessors = list(graph.successors(next))
         loc = check_loc(nodes, placed, next, graph, two_wire)
         print(next)
-        # print(len(shape[-1]))
-        # if index %20 == 0:
-        #     n_map = convert_new_map2(shape[-1][-1])
-        #     n_map = np.array(n_map)
-        #     np.savetxt("example/qaoa/qaoa14_" + str(index) + ".csv", n_map, fmt='%s', delimiter=",")
         if next == 'A.18':
             print('g')
         next_list = place_next(next, table, shape, valid, index, rows, new_sucessors, qubits, c_qubit, loc, graph, nodes,
@@ -248,7 +250,7 @@ def place_independent(current, graph, qubit_record, rows, qubits, nodes, nodes_l
         next, onle_one_pre, match_next_node = choose_next(nodes_left, placed, graph, nodes, A_loc, B_loc, C_loc, two_wire, onle_one_pre, independent_node, only_right)  # chose the next
         if match_next_node:
             return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
-    return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record
+    return table[-1], shape[-1], placed, onle_one_pre, nodes_left, qubit_record, total_W
 
 def place_combine(table, shape, qubit_record, graph, rows, qubits, nodes, nodes_left, A_loc, B_loc, C_loc, W_len,
                               independent_node, placed, keep, update_measuremnt_count, QAOA):
@@ -1690,9 +1692,10 @@ def count_component(nodes):
                 j = j + 1
     return num + len(nodes) * 2
 
-def cal_v(nodes, first, last):
+def cal_v(nodes, first, last, graph):
     recorded = []
     total_v = 0
+    total_anchor = 0
     num = 0
     for i in range(len(nodes)):
         j = 0
@@ -1712,6 +1715,7 @@ def cal_v(nodes, first, last):
                     next = nodes[i][j + 1]
                     c_gate, gate_index = next.split('.')
                 num = num + 1
+                total_anchor = total_anchor + 2
                 if count == 1:
                     total_v = total_v + 1
                 elif count == 2:
@@ -1732,6 +1736,11 @@ def cal_v(nodes, first, last):
                 j = j + 1
                 recorded.append(next)
                 total_v = total_v + 1
+                pred = list(graph.predecessors(next))
+                if len(pred) < 2:
+                    total_anchor = total_anchor + 4
+                else:
+                    total_anchor = total_anchor + 2
             else:
                 j = j + 1
     for count in first:
@@ -1750,6 +1759,7 @@ def cal_v(nodes, first, last):
         elif count == 7:
             total_v = total_v + 159
     for count in last:
+        total_anchor = total_anchor + 2
         if count == 1:
             total_v = total_v + 1
         elif count == 2:
@@ -1765,4 +1775,11 @@ def cal_v(nodes, first, last):
         elif count == 7:
             total_v = total_v + 159
     num = num + len(nodes) * 2
-    return total_v/num
+    return total_v/num, total_anchor/(num - len(nodes))
+
+def count_width(table):
+    total = []
+    for entry in table:
+        total.append(entry['row'])
+    new_total = list(set(total))
+    return len(new_total)

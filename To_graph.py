@@ -47,6 +47,9 @@ def gen_index(map, QAOA):
             graph.add_edge(node[i], node[i+1])
     #order = list(nx.topological_sort(graph))
     #next = list(graph.successors('A.0'))
+    for i in range(len(first)):
+        if first[i] < 0:
+            first[i] = abs(first[i])
     return graph, nodes, W_len, first, last, A_loc, B_loc, C_loc
 
 def gen_DAG(map, s_row):
