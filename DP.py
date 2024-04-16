@@ -9,7 +9,7 @@ from fill_map import *
 from leaves import *
 from last_step import *
 special_greedy = 0
-restrict = 1 #restrict C be in one row
+restrict = 0 #restrict C be in one row
 from iterations import keep_placing
 
 # keep = 10
@@ -38,8 +38,8 @@ def DP(ori_map, qubits, rows, flip, first_loc, file_name, keep, hwea, reduce_mea
     print('average V and anchor: ', average_v, average_a)
     print('components: ', total_components)
     original_wire = sum(W_len)
-    table, shapes, total_W = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
-    print('average W: ', (total_W + sum(first))/(total_components - 1 - qubits))
+    # table, shapes, total_W = place_core(graph, nodes, W_len, rows, qubits, A_loc, B_loc, C_loc, keep, reduce_measuremnts, QAOA)
+    # print('average W: ', (total_W + sum(first))/(total_components - 1 - qubits))
     # print("finished placing core")
     # depths = show_depth(shapes)
     # middle_shapes = shapes[-1]

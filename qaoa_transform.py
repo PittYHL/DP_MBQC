@@ -1,7 +1,7 @@
 from gate_blocks import *
 
-new_file = 'Benchmarks/qaoa36b.txt'
-with open('Benchmarks/qaoa36.txt') as f:
+new_file = 'Benchmarks/qaoa42b.txt'
+with open('Benchmarks/qaoa42.txt') as f:
     lines = f.readlines()
 f.close()
 circuit= lines.copy()
