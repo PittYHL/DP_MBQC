@@ -12,7 +12,7 @@ import csv
 def biuld_DAG(gates):
     DAG_list = gates.copy()
 keep = 2
-qubits = 42
+qubits = 12
 rows = 12
 flip = False
 reduce_measuremnts = 0 #set the number of measurements as objective
@@ -25,7 +25,7 @@ wire_remove = 1
 remove_single = 1 #for removing the single qubit gate
 remove_SWAP = 1
 # restricted = 0 #restrict the qubit locate
-remove_y = 0#for CNOT (QAOA)
+remove_y = 1#for CNOT (QAOA)
 # special_greedy = 0
 physical_gate = []
 tracker= []
@@ -35,7 +35,7 @@ for i in range(qubits*2-1):
     map.append([])
 for i in range(qubits):
     tracker.append(i)
-with open('Benchmarks/bv42b.txt') as f:
+with open('Benchmarks/qaoa12b.txt') as f:
     lines = f.readlines()
 circuit= lines.copy()
 layer = []
@@ -271,6 +271,13 @@ while(new_circuit!=[]):
 fill_map(qubits,map)
 if remove_SWAP:
     physical_gate = remove_SW(qubits, physical_gate)
+num_gate = 0
+for gate in physical_gate:
+    if gate['gate'] == 'ZZ':
+        num_gate =  num_gate  + 3
+    else:
+        num_gate = num_gate + 1
+print("gate: ", num_gate)
 DAG = dense(qubits, physical_gate)
 dense_map = cons_new_map(qubits,DAG)
 uti0, use0 = cal_utilization2(dense_map, rows)
@@ -290,16 +297,18 @@ uti0, use0 = cal_utilization2(dense_map, rows)
 # newnew_map = convert_new_map(dense_map)
 # n_map = np.array(newnew_map)
 # np.savetxt("example/qaoa26el_111b.csv", n_map, fmt = '%s',delimiter=",")
+
 if wire_remove:
-    # new_map = remove_leaves_wire(dense_map, qubits)
-    # new_map = remove_wire(new_map, qubits, remove_single, remove_y)
-    new_map = new_eliminate_redundant(dense_map, qubits)
+    new_map = remove_leaves_wire(dense_map, qubits)
     new_map = remove_wire(new_map, qubits, remove_single, remove_y)
-    new_map = new_eliminate_redundant(new_map, qubits)
+    # new_map = new_eliminate_redundant(dense_map, qubits)
+    # new_map = remove_wire(new_map, qubits, remove_single, remove_y)
+    # new_map = new_eliminate_redundant(new_map, qubits)
 uti0, use0 = cal_utilization2(new_map, rows)
 newnew_map = convert_new_map(new_map)
 n_map = np.array(newnew_map)
-# np.savetxt("example/qaoa14a_111.csv", n_map, fmt = '%s',delimiter=",")
+
+# np.savetxt("example/vqe6_111.csv", n_map, fmt = '%s',delimiter=",")
 # file = open("example/hlf27el.csv", "r")
 # new_map = list(csv.reader(file, delimiter=","))
 # file.close()
